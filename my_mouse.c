@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 
-int get_dimensions(FILE* map_file, char* width){
+int get_dimensions(FILE* map_file, char* width, char* trailing_char){
 
     char* temp = malloc(4);
     int i = 0;
@@ -16,6 +16,7 @@ int get_dimensions(FILE* map_file, char* width){
         i++;
     }
 
+    *trailing_char = temp[i];
     temp[i] = '\0';
 
     width = realloc(width, i);
@@ -23,6 +24,8 @@ int get_dimensions(FILE* map_file, char* width){
 
     return 0;
 }
+
+
 
 
 int main(int av, char** ac){
@@ -42,11 +45,25 @@ int main(int av, char** ac){
 
     char* width = malloc(4);
     char* height = malloc(4);
-    get_dimensions(map_file, width);
-    get_dimensions(map_file, height);
+    char trailing_char;
+
+    if (get_dimensions(map_file, width, &trailing_char) != 0 || trailing_char != 'x') {
+        write(2, "invalid dimensions", 19);
+        return 1;
+    }
+
+    if (get_dimensions(map_file, height, &trailing_char) != 0) {
+        write(2, "invalid dimensions", 19);
+        return 1;
+    }
 
     printf("width = %s\n", width);
     printf("length = %s\n", height);
+    
+    char full = trailing_char;
+    printf("FULL = %c\n", full);
+
+
 
     fclose(map_file);
 
