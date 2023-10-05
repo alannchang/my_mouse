@@ -61,9 +61,17 @@ int main(int av, char** ac){
     printf("length = %s\n", height);
     
     char full = trailing_char;
-    printf("FULL = %c\n", full);
+    char empty = fgetc(map_file);
+    char path = fgetc(map_file);
+    char maze_entrance = fgetc(map_file);
+    char maze_exit = fgetc(map_file);
 
+    printf("FULL = %c\nEMPTY = %c\nPATH = %c\nENTRANCE = %c\nEXIT = %c\n", full, empty, path, maze_entrance, maze_exit);
 
+    if (fgetc(map_file) != '\n') {
+        write(2, "invalid dimensions", 19);
+        return 1;
+    }
 
     fclose(map_file);
 
