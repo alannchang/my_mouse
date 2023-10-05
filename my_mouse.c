@@ -2,25 +2,25 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cstddef>
+#include <ctype.h>
 
-
-int get_dimensions(FILE* map_file, char stopchar, char* width, size_t i){
+int get_dimensions(FILE* map_file, char* width){
 
     char* temp = malloc(4);
-    i = 0;
+    int i = 0;
 
-    while((temp[i] = fgetc(map_file)) != stopchar) {
-
-        if (temp[i] == EOF || temp[i] == '\n') return 1;
+    while(isdigit(temp[i] = fgetc(map_file))) {
         
-        if (i > 3) return 1;
+        if (i > 2) return 1;
 
         i++;
     }
+
     temp[i] = '\0';
 
-    char* width = malloc(i);
+    width = realloc(width, i);
+    strncpy(width, temp, i);
+
     return 0;
 }
 
@@ -40,13 +40,13 @@ int main(int av, char** ac){
         return 1;
     }
 
-    char* width;
-    size_t size = 0;
-    get_dimensions(map_file, 'x', width, size);
-    strncpy(width, temp, i);
+    char* width = malloc(4);
+    char* height = malloc(4);
+    get_dimensions(map_file, width);
+    get_dimensions(map_file, height);
 
     printf("width = %s\n", width);
-
+    printf("length = %s\n", height);
 
     fclose(map_file);
 
