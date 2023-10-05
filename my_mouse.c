@@ -1,6 +1,28 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <cstddef>
 
+
+int get_dimensions(FILE* map_file, char stopchar, char* width, size_t i){
+
+    char* temp = malloc(4);
+    i = 0;
+
+    while((temp[i] = fgetc(map_file)) != stopchar) {
+
+        if (temp[i] == EOF || temp[i] == '\n') return 1;
+        
+        if (i > 3) return 1;
+
+        i++;
+    }
+    temp[i] = '\0';
+
+    char* width = malloc(i);
+    return 0;
+}
 
 
 int main(int av, char** ac){
@@ -18,11 +40,13 @@ int main(int av, char** ac){
         return 1;
     }
 
-    char line[1000];
+    char* width;
+    size_t size = 0;
+    get_dimensions(map_file, 'x', width, size);
+    strncpy(width, temp, i);
 
-    while (fgets(line, sizeof(line), map_file) != NULL) {
-        printf("%s", line);
-    }
+    printf("width = %s\n", width);
+
 
     fclose(map_file);
 
