@@ -44,7 +44,7 @@ int main(int av, char** ac){
     }
 
     char* width = malloc(4);
-    char* height = malloc(4);
+    char* length = malloc(4);
     char trailing_char;
 
     if (get_dimensions(map_file, width, &trailing_char) != 0 || trailing_char != 'x') {
@@ -52,13 +52,13 @@ int main(int av, char** ac){
         return 1;
     }
 
-    if (get_dimensions(map_file, height, &trailing_char) != 0) {
+    if (get_dimensions(map_file, length, &trailing_char) != 0) {
         write(2, "invalid dimensions", 19);
         return 1;
     }
 
-    printf("width = %s\n", width);
-    printf("length = %s\n", height);
+    printf("Total rows = %s\n", width);
+    printf("Total columns = %s\n", length);
     
     char full = trailing_char;
     char empty = fgetc(map_file);
@@ -71,6 +71,56 @@ int main(int av, char** ac){
     if (fgetc(map_file) != '\n') {
         write(2, "invalid dimensions", 19);
         return 1;
+    }
+
+    int total_rows = atoi(width);
+    int total_columns = atoi(length);
+    int row_index = 0;
+    int col_index = 0;
+
+    int maze[total_rows + 1][total_columns + 1];
+
+    char temp;
+    while ((temp = fgetc(map_file)) != EOF) {
+        
+        if (temp == full) {
+            maze[row_index][col_index] = 1;
+            col_index++; 
+        }
+
+        else if (temp == empty) {
+            maze[row_index][col_index] = 0;
+            col_index++;
+        }
+
+        else if (temp == maze_entrance) {
+            maze[row_index][col_index] = 2;
+            col_index++;
+        } 
+        
+        else if (temp == maze_exit) {
+            maze[row_index][col_index] = 3;
+            col_index++;
+        } 
+        
+        else if (temp == '\n') {
+            maze[row_index][col_index] = '\0';
+            col_index = 0;
+            row_index++;
+        }
+
+        else {
+            write(2, "MAP ERROR", 10);
+            return 1;
+        }
+
+    }
+
+    for (int i = 0; i < total_rows; i++){
+        for (int j = 0; j < total_columns; j++) {
+            printf("%d", maze[i][j]);
+        }
+        printf("\n");
     }
 
     fclose(map_file);
