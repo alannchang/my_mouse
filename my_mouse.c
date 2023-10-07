@@ -25,6 +25,45 @@ int get_dimensions(FILE* map_file, char* width, char* trailing_char){
     return 0;
 }
 
+int create_maze(FILE* map_file, int total_rows, int total_columns, int (*maze)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit){
+
+    char temp;
+    int row_index = 0;
+    int col_index = 0;
+
+    while ((temp = fgetc(map_file)) != EOF) {
+        
+        if (temp == full) {
+            maze[row_index][col_index] = 1;
+            col_index++; 
+        }
+
+        else if (temp == empty) {
+            maze[row_index][col_index] = 0;
+            col_index++;
+        }
+
+        else if (temp == maze_entrance) {
+            maze[row_index][col_index] = 2;
+            col_index++;
+        } 
+        
+        else if (temp == maze_exit) {
+            maze[row_index][col_index] = 3;
+            col_index++;
+        } 
+        
+        else if (temp == '\n') {
+            maze[row_index][col_index] = '\0';
+            col_index = 0;
+            row_index++;
+        }
+
+        else return 1;
+    }
+
+    return 0;
+}
 
 
 
@@ -75,45 +114,12 @@ int main(int av, char** ac){
 
     int total_rows = atoi(width);
     int total_columns = atoi(length);
-    int row_index = 0;
-    int col_index = 0;
 
     int maze[total_rows + 1][total_columns + 1];
 
-    char temp;
-    while ((temp = fgetc(map_file)) != EOF) {
-        
-        if (temp == full) {
-            maze[row_index][col_index] = 1;
-            col_index++; 
-        }
-
-        else if (temp == empty) {
-            maze[row_index][col_index] = 0;
-            col_index++;
-        }
-
-        else if (temp == maze_entrance) {
-            maze[row_index][col_index] = 2;
-            col_index++;
-        } 
-        
-        else if (temp == maze_exit) {
-            maze[row_index][col_index] = 3;
-            col_index++;
-        } 
-        
-        else if (temp == '\n') {
-            maze[row_index][col_index] = '\0';
-            col_index = 0;
-            row_index++;
-        }
-
-        else {
-            write(2, "MAP ERROR", 10);
-            return 1;
-        }
-
+    if (create_maze(map_file, total_rows, total_columns, maze, full, empty, maze_entrance, maze_exit) != 0){
+        write(2, "MAP ERROR", 10);
+        return 1;
     }
 
     for (int i = 0; i < total_rows; i++){
