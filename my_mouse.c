@@ -76,8 +76,12 @@ int create_maze(FILE* map_file, int total_columns, int (*maze)[total_columns + 1
     return 0;
 }
 
-bool reached_exit(int row, int col, cell exit_cell){
-    return (row == exit_cell.row) && (col == exit_cell.col);
+bool is_valid(int new_row, int new_col, int total_rows, int total_columns){
+    return (new_row >= 0) && (new_row < total_rows) && (new_col >= 0) && (new_col < total_columns);
+}
+
+bool reached_exit(cell* current_cell, cell* exit_cell){
+    return (current_cell->row == exit_cell->row) && (current_cell->col == exit_cell->col);
 }
 
 int get_h(int row, int col, cell exit_cell){
@@ -113,14 +117,49 @@ int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], ce
             if (open_list[i]->f < open_list[lowest_f_index]->f) lowest_f_index = i;
         }
 
-        // get current cell from the open list
-        cell* current_node = open_list[lowest_f_index];
+        cell* current_cell = open_list[lowest_f_index];
 
-        // remove current cell from open list
+        // remove cell with lowest f value from open list
         for (int i = lowest_f_index; i < open_ct - 1; i++){
             open_list[i] = open_list[i + 1];
         }
         open_ct--;
+
+        // add cell to closed list
+
+        closed_list[closed_ct++] = current_cell;
+
+        // if exit found
+        if (reached_exit(current_cell, exit_cell)){
+
+            printf("GOAL REACHED!");
+            return 0;
+
+        }
+
+        int dr[] = {-1, 1, 0, 0};
+        int dc[] = {0, 0, -1, 1};
+
+        for (int i = 0; i < 4; i++){
+            int new_row = current_cell->row + dr[i];
+            int new_col = current_cell->col + dc[i];
+
+            if (is_valid(new_row, new_col, total_rows, total_columns) && maze[new_row][new_col] != 1){
+                bool in_closed_list = false;
+                for (int j = 0; j < closed_ct; j++){
+                    if (closed_list[j]->row == new_row && closed_list[j]->col == new_col){
+                        in_closed_list = true;
+                        break;
+                    }
+                }
+            }
+
+
+        }
+
+
+
+
 
 
     
