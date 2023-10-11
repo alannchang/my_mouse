@@ -8,6 +8,7 @@
 
 typedef struct Node {
     int row, col, f, g, h;
+    struct Node* parent;
 } cell;
 
 int get_dimensions(FILE* map_file, char* width, char* trailing_char){
@@ -75,20 +76,12 @@ int create_maze(FILE* map_file, int total_columns, int (*maze)[total_columns + 1
     return 0;
 }
 
-bool is_valid(int row, int col, int total_rows, int total_columns){
-    return (row >= 0) && (row < total_rows) && (col >= 0) && (col < total_columns);
-}
-
-bool is_not_blocked(int total_columns, int (*maze)[total_columns + 1],  int row, int col){
-    return (maze[row][col] == 1);
-}
-
-bool is_exit(int row, int col, cell exit_cell){
+bool reached_exit(int row, int col, cell exit_cell){
     return (row == exit_cell.row) && (col == exit_cell.col);
 }
 
 int get_h(int row, int col, cell exit_cell){
-    int h = abs(row - exit_cell.row) + abs(col - exit_cell.col); 
+    int h = abs(row - exit_cell.row) + abs(col - exit_cell.col); // Manhattan Distance
     return h;
 }
 
@@ -96,7 +89,49 @@ void trace_path(cell exit_cell){
 
 }
 
-int a_star(int total_columns, int (*maze)[total_columns + 1]){
+int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], cell* entry_cell, cell* exit_cell){
+
+    cell* open_list[total_rows * total_columns];
+    cell* closed_list[total_rows * total_columns];
+
+    int open_ct = 0;
+    int closed_ct = 0;
+
+    entry_cell->f = 0;
+    entry_cell->g = 0;
+    entry_cell->h = 0;
+    entry_cell->parent = NULL;
+
+    open_list[open_ct++] = entry_cell;
+
+    while(open_ct > 0){
+
+        // find cell with the lowest f value in the open list
+        int lowest_f_index = 0;
+
+        for (int i = 1; i < open_ct; i++){
+            if (open_list[i]->f < open_list[lowest_f_index]->f) lowest_f_index = i;
+        }
+
+        // get current cell from the open list
+        cell* current_node = open_list[lowest_f_index];
+
+        // remove current cell from open list
+        for (int i = lowest_f_index; i < open_ct - 1; i++){
+            open_list[i] = open_list[i + 1];
+        }
+        open_ct--;
+
+
+    
+
+    
+    }
+
+
+
+
+
     
     return 0;
 }
@@ -114,7 +149,7 @@ int a_star(int total_columns, int (*maze)[total_columns + 1]){
 
     b) pop q off the open list
   
-    c) generate q's 8 successors and set their 
+    c) generate q's 4 successors and set their 
        parents to q
    
     d) for each successor
