@@ -84,8 +84,8 @@ bool reached_exit(cell* current_cell, cell* exit_cell){
     return (current_cell->row == exit_cell->row) && (current_cell->col == exit_cell->col);
 }
 
-int get_h(int row, int col, cell exit_cell){
-    int h = abs(row - exit_cell.row) + abs(col - exit_cell.col); // Manhattan Distance
+int get_h(int row, int col, cell* exit_cell){
+    int h = abs(row - exit_cell->row) + abs(col - exit_cell->col); // Manhattan Distance
     return h;
 }
 
@@ -126,15 +126,19 @@ int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], ce
         open_ct--;
 
         // add cell to closed list
-
         closed_list[closed_ct++] = current_cell;
 
         // if exit found
         if (reached_exit(current_cell, exit_cell)){
 
-            printf("GOAL REACHED!");
-            return 0;
+            cell* path = current_cell;
+            while (path != NULL){
+                printf("(%d, %d) => ", path->row, path->col);
+                path = path->parent;
+            }
 
+            printf("GOAL REACHED!\n");
+            return 0;
         }
 
         int dr[] = {-1, 1, 0, 0};
@@ -152,80 +156,52 @@ int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], ce
                         break;
                     }
                 }
+
+                if (!in_closed_list){
+                    // create successor
+                    cell* successor = (cell*)malloc(sizeof(cell));
+                    successor->row = new_row;
+                    successor->col = new_col;
+                    successor->parent = current_cell;
+                    successor->g = current_cell->g + 1;
+                    successor->h = get_h(new_row, new_col, exit_cell);
+
+                    // check if node is already present on open list
+                    bool in_open_list = false;
+                    for (int j = 0; j < open_ct; j++){
+                        if (open_list[j]-> row == new_row && open_list[j]->col == new_col){
+                            in_open_list = true;
+                            break;
+                        }
+                    }
+
+                    if (!in_open_list){
+                        // add successor to open list
+                        open_list[open_ct++] = successor;
+                    } else {
+                        // dispose of successor
+                        free(successor);
+                    }
+                }
             }
-
-
         }
-
-
-
-
-
-
-    
-
-    
     }
 
+    // clean up
+    // for (int i = 0; i < closed_ct; i++){
+    //     free(closed_list[i]);
+    // }
 
+    // no path found
+    return -1;
 
-
-
-    
-    return 0;
 }
-/*
 
-// A* Search Algorithm
-1.  Initialize the open list
-2.  Initialize the closed list
-    put the starting node on the open 
-    list (you can leave its f at zero)
-
-3.  while the open list is not empty
-    a) find the node with the least f on 
-       the open list, call it "q"
-
-    b) pop q off the open list
-  
-    c) generate q's 4 successors and set their 
-       parents to q
-   
-    d) for each successor
-        i) if successor is the goal, stop search
-        
-        ii) else, compute both g and h for successor
-          successor.g = q.g + distance between 
-                              successor and q
-          successor.h = distance from goal to 
-          successor (This can be done using many 
-          ways, we will discuss three heuristics- 
-          Manhattan, Diagonal and Euclidean 
-          Heuristics)
-          
-          successor.f = successor.g + successor.h
-
-        iii) if a node with the same position as 
-            successor is in the OPEN list which has a 
-           lower f than successor, skip this successor
-
-        iV) if a node with the same position as 
-            successor  is in the CLOSED list which has
-            a lower f than successor, skip this successor
-            otherwise, add  the node to the open list
-     end (for loop)
-  
-    e) push q on the closed list
-    end (while loop)
-
-*/
 
 int main(int av, char** ac){
 
 //  1. read map while checking if map is valid
-
 //  FIRST LINE: PARAMETERS
-
     if (av != 2) {
         write(2, "invalid number of arguments\n", 29); 
         return 1;
@@ -242,12 +218,12 @@ int main(int av, char** ac){
     char trailing_char;
 
     if (get_dimensions(map_file, width, &trailing_char) != 0 || trailing_char != 'x') {
-        write(2, "invalid dimensions", 19);
+        write(2, "invalid dimensions\n", 20);
         return 1;
     }
 
     if (get_dimensions(map_file, length, &trailing_char) != 0) {
-        write(2, "invalid dimensions", 19);
+        write(2, "invalid dimensions\n", 20);
         return 1;
     }
 
@@ -263,12 +239,11 @@ int main(int av, char** ac){
     printf("FULL = %c\nEMPTY = %c\nPATH = %c\nENTRANCE = %c\nEXIT = %c\n", full, empty, path, maze_entrance, maze_exit);
 
     if (fgetc(map_file) != '\n') {
-        write(2, "invalid dimensions", 19);
+        write(2, "invalid dimensions\n", 20);
         return 1;
     }
 
 //  MAP
-
     int total_rows = atoi(width);
     int total_columns = atoi(length);
 
@@ -277,7 +252,7 @@ int main(int av, char** ac){
     cell exit_cell;
 
     if (create_maze(map_file, total_columns, maze, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
-        write(2, "MAP ERROR", 10);
+        write(2, "MAP ERROR\n", 11);
         return 1;
     }
 
@@ -290,6 +265,10 @@ int main(int av, char** ac){
 
     printf("Entrance: %d, %d\nExit: %d, %d\n", entry_cell.row, entry_cell.col, exit_cell.row, exit_cell.col);
 
+    if (a_star(total_rows, total_columns, maze, &entry_cell, &exit_cell) != 0){
+        write(2, "MAP ERROR\n", 11);
+        return 1;
+    }
 
     fclose(map_file);
 
