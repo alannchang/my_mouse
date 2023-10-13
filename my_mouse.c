@@ -216,6 +216,7 @@ void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_col
         for (int j = 0; j < total_columns; j++) {
 
             switch(maze_arr[i][j]){
+                
                 case 0: 
                     if ((checker(i, j, solution, empty, path)) == 1) ct++;
                     break;
@@ -243,12 +244,12 @@ void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_col
 
 int main(int av, char** ac){
 
-//  1. read map while checking if map is valid
-//  FIRST LINE: PARAMETERS
     if (av != 2) {
         write(2, "invalid number of arguments\n", 27); 
         return 1;
     }
+
+//  read the map parameters (first line)
 
     FILE* map_file = fopen(ac[1], "r");
     if (map_file == NULL) {
@@ -281,7 +282,8 @@ int main(int av, char** ac){
         return 1;
     }
 
-//  MAP
+//  read the map and store it as a 2D array representation
+
     int total_rows = atoi(width);
     int total_columns = atoi(length);
 
@@ -294,12 +296,17 @@ int main(int av, char** ac){
         return 1;
     }
 
+// using a-star, find the shortest path or return NULL if no solution 
+
     cell* solution;
+
     if ((solution = a_star(total_rows, total_columns, maze_arr, &entry_cell, &exit_cell)) == NULL){
         write(2, "MAP ERROR", 9);
         return 1;
 
     } else solution = reverse_linked_list(solution);
+
+//  reconstruct map using "path" character indicating shortest path
 
     printf("%dx%d%c%c%c%c%c\n", total_rows, total_columns, full, empty, path, maze_entrance, maze_exit);
 
@@ -307,8 +314,5 @@ int main(int av, char** ac){
 
     fclose(map_file);
 
-//  2. Construct corresponding matrix/graph
-//  3. Find shortest path
-//  4. reconstruct/print map to stdout with "path" characters indicating shortest path
     return 0;
 }

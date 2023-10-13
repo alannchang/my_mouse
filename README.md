@@ -2,22 +2,25 @@
 ***
 
 ## Task
-TODO - What is the problem? And where is the challenge?
+This project is about finding the shortest path given a file that contains a maze. 
 
 ## Description
-TODO - How have you solved the problem?
+This program finds the shortest path by reading the given map file, storing the maze itself and its parameters, and then implementing the A* algorithm to find the shortest path.
+The program will print out the map and the shortest path or "MAP ERROR" if no paths exist.
 
 ## Installation
-TODO - How to install your project? npm install? make? make re?
+Type "make" to compile the my_mouse.c file and you're read to use the program!
 
 ## Usage
-TODO - How does it work?
+Files that are fed to this program will require that the first line include the parameters of the map.
+For example, for a 10 character by 10 character map with five characters following that to represent the "full", "empty", "path", "entrance", and "exit": 10x10* o12
+
 ```
-./my_project argument1 argument2
+./my_mouse 01.map
 ```
 
 ### The Core Team
-
+Alan Chang
 
 <span><i>Made at <a href='https://qwasar.io'>Qwasar SV -- Software Engineering School</a></i></span>
 <span><img alt='Qwasar SV -- Software Engineering School's Logo' src='https://storage.googleapis.com/qwasar-public/qwasar-logo_50x50.png' width='20px' /></span>
