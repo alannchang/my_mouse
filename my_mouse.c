@@ -138,8 +138,8 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
             return path;
         }
 
-        int dr[] = {-1, 1, 0, 0};
-        int dc[] = {0, 0, -1, 1};
+        int dr[] = {-1, 0, 0, 1};
+        int dc[] = {0, -1, 1, 0};
 
         for (int i = 0; i < 4; i++){
             int new_row = current_cell->row + dr[i];
