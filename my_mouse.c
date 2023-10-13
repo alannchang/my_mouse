@@ -91,6 +91,7 @@ int get_h(int row, int col, cell* exit_cell){
 
 cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 1], cell* entry_cell, cell* exit_cell){
 
+    // two lists to keep track of cells that have or have not been considered
     cell* open_list[total_rows * total_columns];
     cell* closed_list[total_rows * total_columns];
 
@@ -102,11 +103,12 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
     entry_cell->h = 0;
     entry_cell->parent = NULL;
 
+    // open list will start with the entry cell
     open_list[open_ct++] = entry_cell;
 
     while (open_ct > 0){
 
-        // find cell with the lowest f value in the open list
+        // find the cell with the lowest f value in the open list
         int lowest_f_index = 0;
 
         for (int i = 1; i < open_ct; i++){
@@ -115,28 +117,32 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
 
         cell* current_cell = open_list[lowest_f_index];
 
-        // remove cell with lowest f value from open list
+        // remove that cell from open list and add it to the closed list
         for (int i = lowest_f_index; i < open_ct - 1; i++){
             open_list[i] = open_list[i + 1];
         }
         open_ct--;
 
-        // add cell to closed list
         closed_list[closed_ct++] = current_cell;
 
-        // if exit found
+        // if that cell is the exit, return it
         if (reached_exit(current_cell, exit_cell)){
             return current_cell;
         }
 
+        // otherwise, continue search in each direction (up, left, down, right)
         int dr[] = {-1, 0, 0, 1};
         int dc[] = {0, -1, 1, 0};
 
         for (int i = 0; i < 4; i++){
+
             int new_row = current_cell->row + dr[i];
             int new_col = current_cell->col + dc[i];
 
+            // check if cell is one that we can move to
             if (is_valid(new_row, new_col, total_rows, total_columns) && maze_arr[new_row][new_col] != 1){
+
+                // check if cell is already in closed list  
                 bool in_closed_list = false;
                 for (int j = 0; j < closed_ct; j++){
                     if (closed_list[j]->row == new_row && closed_list[j]->col == new_col){
@@ -146,6 +152,7 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
                 }
 
                 if (!in_closed_list){
+
                     // create successor
                     cell* successor = (cell*)malloc(sizeof(cell));
                     successor->row = new_row;
@@ -154,9 +161,11 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
                     successor->g = current_cell->g + 1;
                     successor->h = get_h(new_row, new_col, exit_cell);
 
-                    // check if node is already present on open list
+                    // check if cell is already in open list
                     bool in_open_list = false;
+
                     for (int j = 0; j < open_ct; j++){
+
                         if (open_list[j]-> row == new_row && open_list[j]->col == new_col){
                             in_open_list = true;
                             break;
@@ -164,9 +173,12 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
                     }
 
                     if (!in_open_list){
+
                         // add successor to open list
                         open_list[open_ct++] = successor;
+
                     } else {
+
                         // dispose of successor
                         free(successor);
                     }
@@ -193,7 +205,7 @@ cell* reverse_linked_list(cell* param_1){
     return param_1;
 }
 
-int checker(int i, int j, cell* solution, char empty, char path){
+int path_printer(int i, int j, cell* solution, char empty, char path){
 
     cell* ptr = solution;
 
@@ -209,26 +221,30 @@ int checker(int i, int j, cell* solution, char empty, char path){
     return 0;
 }
 
-void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_columns + 1], cell* solution, char full, char empty, char path, char maze_entrance, char maze_exit){
+void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_columns + 1], cell* path_list, char full, char empty, char path, char maze_entrance, char maze_exit){
 
     int ct = 0;
     for (int i = 0; i < total_rows; i++){
         for (int j = 0; j < total_columns; j++) {
 
             switch(maze_arr[i][j]){
-                
+
                 case 0: 
-                    if ((checker(i, j, solution, empty, path)) == 1) ct++;
+                    if ((path_printer(i, j, path_list, empty, path)) == 1) ct++;
                     break;
+
                 case 1: 
                     putchar(full);
                     break;
+
                 case 2: 
                     putchar(maze_entrance);
                     break;
+
                 case 3: 
                     putchar(maze_exit);
                     break;
+
                 case 10: 
                     putchar('\n');
                     break;
@@ -298,19 +314,19 @@ int main(int av, char** ac){
 
 // using a-star, find the shortest path or return NULL if no solution 
 
-    cell* solution;
+    cell* path_list;
 
-    if ((solution = a_star(total_rows, total_columns, maze_arr, &entry_cell, &exit_cell)) == NULL){
+    if ((path_list = a_star(total_rows, total_columns, maze_arr, &entry_cell, &exit_cell)) == NULL){
         write(2, "MAP ERROR", 9);
         return 1;
 
-    } else solution = reverse_linked_list(solution);
+    } else path_list = reverse_linked_list(path_list);
 
 //  reconstruct map using "path" character indicating shortest path
 
     printf("%dx%d%c%c%c%c%c\n", total_rows, total_columns, full, empty, path, maze_entrance, maze_exit);
 
-    print_solution(total_rows, total_columns, maze_arr, solution, full, empty, path, maze_entrance, maze_exit);
+    print_solution(total_rows, total_columns, maze_arr, path_list, full, empty, path, maze_entrance, maze_exit);
 
     fclose(map_file);
 
