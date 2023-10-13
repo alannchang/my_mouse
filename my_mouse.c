@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+
 typedef struct Node {
     int row, col, f, g, h;
     struct Node* parent;
@@ -31,7 +32,7 @@ int get_dimensions(FILE* map_file, char* width, char* trailing_char){
     return 0;
 }
 
-int create_2d_arr(FILE* map_file, int total_columns, int (*maze)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
+int create_2d_arr(FILE* map_file, int total_columns, int (*maze_arr)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
 
     char temp;
     int row_index = 0;
@@ -40,31 +41,31 @@ int create_2d_arr(FILE* map_file, int total_columns, int (*maze)[total_columns +
     while ((temp = fgetc(map_file)) != EOF) {
         
         if (temp == full) {
-            maze[row_index][col_index] = 1;
+            maze_arr[row_index][col_index] = 1;
             col_index++; 
         }
 
         else if (temp == empty) {
-            maze[row_index][col_index] = 0;
+            maze_arr[row_index][col_index] = 0;
             col_index++;
         }
 
         else if (temp == maze_entrance) {
             entry_cell->row = row_index;
             entry_cell->col = col_index;
-            maze[row_index][col_index] = 2;
+            maze_arr[row_index][col_index] = 2;
             col_index++;
         } 
         
         else if (temp == maze_exit) {
             exit_cell->row = row_index;
             exit_cell->col = col_index;
-            maze[row_index][col_index] = 3;
+            maze_arr[row_index][col_index] = 3;
             col_index++;
         } 
         
         else if (temp == '\n') {
-            maze[row_index][col_index] = '\0';
+            maze_arr[row_index][col_index] = '\0';
             col_index = 0;
             row_index++;
         }
@@ -88,11 +89,7 @@ int get_h(int row, int col, cell* exit_cell){
     return h;
 }
 
-void trace_path(cell exit_cell){
-
-}
-
-cell* a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], cell* entry_cell, cell* exit_cell){
+cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 1], cell* entry_cell, cell* exit_cell){
 
     cell* open_list[total_rows * total_columns];
     cell* closed_list[total_rows * total_columns];
@@ -148,7 +145,7 @@ cell* a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], 
             int new_row = current_cell->row + dr[i];
             int new_col = current_cell->col + dc[i];
 
-            if (is_valid(new_row, new_col, total_rows, total_columns) && maze[new_row][new_col] != 1){
+            if (is_valid(new_row, new_col, total_rows, total_columns) && maze_arr[new_row][new_col] != 1){
                 bool in_closed_list = false;
                 for (int j = 0; j < closed_ct; j++){
                     if (closed_list[j]->row == new_row && closed_list[j]->col == new_col){
@@ -209,8 +206,47 @@ cell* reverse_linked_list(cell* param_1)
     return param_1;
 }
 
-void print_solution(){
-    
+int checker(int i, int j, cell* solution, char empty, char path){
+    cell* ptr = solution;
+    while(ptr != NULL){
+        if (ptr->row == i && ptr->col == j){
+            putchar(path);
+            return 1;
+        }
+        ptr = ptr->parent;
+    }
+    putchar(empty);
+    return 0;
+}
+
+void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_columns + 1], cell* solution, char full, char empty, char path, char maze_entrance, char maze_exit){
+
+    int ct = 0;
+    for (int i = 0; i < total_rows; i++){
+        for (int j = 0; j < total_columns; j++) {
+
+            switch(maze_arr[i][j]){
+                case 0: 
+                    if ((checker(i, j, solution, empty, path)) == 1) ct++;
+                    break;
+                case 1: 
+                    putchar(full);
+                    break;
+                case 2: 
+                    putchar(maze_entrance);
+                    break;
+                case 3: 
+                    putchar(maze_exit);
+                    break;
+                case 10: 
+                    putchar('\n');
+                    break;
+            }
+        }
+    printf("\n");
+    }
+    printf("%d STEPS!\n", ct);
+
 }
 
 
@@ -263,18 +299,18 @@ int main(int av, char** ac){
     int total_rows = atoi(width);
     int total_columns = atoi(length);
 
-    int maze[total_rows + 1][total_columns + 1];
+    int maze_arr[total_rows + 1][total_columns + 1];
     cell entry_cell;
     cell exit_cell;
 
-    if (create_2d_arr(map_file, total_columns, maze, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
+    if (create_2d_arr(map_file, total_columns, maze_arr, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
         write(2, "MAP ERROR\n", 11);
         return 1;
     }
 
     for (int i = 0; i < total_rows; i++){
         for (int j = 0; j < total_columns; j++) {
-            printf("%d", maze[i][j]);
+            printf("%d", maze_arr[i][j]);
         }
         printf("\n");
     }
@@ -282,17 +318,21 @@ int main(int av, char** ac){
     printf("Entrance: %d, %d\nExit: %d, %d\n", entry_cell.row, entry_cell.col, exit_cell.row, exit_cell.col);
 
     cell* solution;
-    if ((solution = a_star(total_rows, total_columns, maze, &entry_cell, &exit_cell)) == NULL){
+    if ((solution = a_star(total_rows, total_columns, maze_arr, &entry_cell, &exit_cell)) == NULL){
         write(2, "MAP ERROR\n", 11);
         return 1;
 
     } else {
         solution = reverse_linked_list(solution);
-        while (solution != NULL){
-            printf("(%d, %d)", solution->row, solution->col);
-            solution = solution->parent;
+        cell* temp_ptr = solution;
+        while (temp_ptr != NULL){
+            printf("(%d, %d)", temp_ptr->row, temp_ptr->col);
+            temp_ptr = temp_ptr->parent;
         }
+        printf("\n");
     }
+
+    print_solution(total_rows, total_columns, maze_arr, solution, full, empty, path, maze_entrance, maze_exit);
 
     fclose(map_file);
 
