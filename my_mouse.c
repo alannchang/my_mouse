@@ -16,7 +16,7 @@ int get_dimensions(FILE* map_file, char* width, char* trailing_char){
     char* temp = malloc(4);
     int i = 0;
 
-    while(isdigit(temp[i] = fgetc(map_file))) {
+    while (isdigit(temp[i] = fgetc(map_file))) {
         
         if (i > 2) return 1;
 
@@ -104,7 +104,7 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
 
     open_list[open_ct++] = entry_cell;
 
-    while(open_ct > 0){
+    while (open_ct > 0){
 
         // find cell with the lowest f value in the open list
         int lowest_f_index = 0;
@@ -126,16 +126,7 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
 
         // if exit found
         if (reached_exit(current_cell, exit_cell)){
-
-            cell* path = malloc(sizeof(cell));
-            path = current_cell;
-            // while (path != NULL){
-            //     printf("(%d, %d) => ", path->row, path->col);
-            //     path = path->parent;
-            // }
-
-            printf("GOAL REACHED!\n");
-            return path;
+            return current_cell;
         }
 
         int dr[] = {-1, 0, 0, 1};
@@ -184,16 +175,11 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
         }
     }
 
-    // clean up
-    // for (int i = 0; i < closed_ct; i++){
-    //     free(closed_list[i]);
-    // }
-    // no path found
     return NULL;
 }
 
-cell* reverse_linked_list(cell* param_1)
-{
+cell* reverse_linked_list(cell* param_1){
+
     cell *prev = NULL;
     cell *next = NULL;
     while (param_1 != NULL) {
@@ -202,19 +188,23 @@ cell* reverse_linked_list(cell* param_1)
         prev = param_1;
         param_1 = next;
     }
+
     param_1 = prev;
     return param_1;
 }
 
 int checker(int i, int j, cell* solution, char empty, char path){
+
     cell* ptr = solution;
-    while(ptr != NULL){
+
+    while (ptr != NULL){
         if (ptr->row == i && ptr->col == j){
             putchar(path);
             return 1;
         }
         ptr = ptr->parent;
     }
+
     putchar(empty);
     return 0;
 }
@@ -243,10 +233,11 @@ void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_col
                     break;
             }
         }
-    printf("\n");
-    }
-    printf("%d STEPS!\n", ct);
 
+    putchar('\n');
+    }
+
+    printf("%d STEPS!\n", ct);
 }
 
 
@@ -255,7 +246,7 @@ int main(int av, char** ac){
 //  1. read map while checking if map is valid
 //  FIRST LINE: PARAMETERS
     if (av != 2) {
-        write(2, "invalid number of arguments\n", 29); 
+        write(2, "invalid number of arguments\n", 27); 
         return 1;
     }
 
@@ -270,17 +261,14 @@ int main(int av, char** ac){
     char trailing_char;
 
     if (get_dimensions(map_file, width, &trailing_char) != 0 || trailing_char != 'x') {
-        write(2, "invalid dimensions\n", 20);
+        write(2, "invalid dimensions\n", 19);
         return 1;
     }
 
     if (get_dimensions(map_file, length, &trailing_char) != 0) {
-        write(2, "invalid dimensions\n", 20);
+        write(2, "invalid dimensions\n", 19);
         return 1;
     }
-
-    printf("Total rows = %s\n", width);
-    printf("Total columns = %s\n", length);
     
     char full = trailing_char;
     char empty = fgetc(map_file);
@@ -288,10 +276,8 @@ int main(int av, char** ac){
     char maze_entrance = fgetc(map_file);
     char maze_exit = fgetc(map_file);
 
-    printf("FULL = %c\nEMPTY = %c\nPATH = %c\nENTRANCE = %c\nEXIT = %c\n", full, empty, path, maze_entrance, maze_exit);
-
     if (fgetc(map_file) != '\n') {
-        write(2, "invalid dimensions\n", 20);
+        write(2, "invalid dimensions\n", 19);
         return 1;
     }
 
@@ -304,33 +290,18 @@ int main(int av, char** ac){
     cell exit_cell;
 
     if (create_2d_arr(map_file, total_columns, maze_arr, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
-        write(2, "MAP ERROR\n", 11);
+        write(2, "MAP ERROR", 9);
         return 1;
     }
-
-    for (int i = 0; i < total_rows; i++){
-        for (int j = 0; j < total_columns; j++) {
-            printf("%d", maze_arr[i][j]);
-        }
-        printf("\n");
-    }
-
-    printf("Entrance: %d, %d\nExit: %d, %d\n", entry_cell.row, entry_cell.col, exit_cell.row, exit_cell.col);
 
     cell* solution;
     if ((solution = a_star(total_rows, total_columns, maze_arr, &entry_cell, &exit_cell)) == NULL){
-        write(2, "MAP ERROR\n", 11);
+        write(2, "MAP ERROR", 9);
         return 1;
 
-    } else {
-        solution = reverse_linked_list(solution);
-        cell* temp_ptr = solution;
-        while (temp_ptr != NULL){
-            printf("(%d, %d)", temp_ptr->row, temp_ptr->col);
-            temp_ptr = temp_ptr->parent;
-        }
-        printf("\n");
-    }
+    } else solution = reverse_linked_list(solution);
+
+    printf("%dx%d%c%c%c%c%c\n", total_rows, total_columns, full, empty, path, maze_entrance, maze_exit);
 
     print_solution(total_rows, total_columns, maze_arr, solution, full, empty, path, maze_entrance, maze_exit);
 
