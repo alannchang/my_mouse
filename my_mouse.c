@@ -5,7 +5,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-
 typedef struct Node {
     int row, col, f, g, h;
     struct Node* parent;
@@ -32,7 +31,7 @@ int get_dimensions(FILE* map_file, char* width, char* trailing_char){
     return 0;
 }
 
-int create_maze(FILE* map_file, int total_columns, int (*maze)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
+int create_2d_arr(FILE* map_file, int total_columns, int (*maze)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
 
     char temp;
     int row_index = 0;
@@ -93,7 +92,7 @@ void trace_path(cell exit_cell){
 
 }
 
-int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], cell* entry_cell, cell* exit_cell){
+cell* a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], cell* entry_cell, cell* exit_cell){
 
     cell* open_list[total_rows * total_columns];
     cell* closed_list[total_rows * total_columns];
@@ -131,14 +130,15 @@ int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], ce
         // if exit found
         if (reached_exit(current_cell, exit_cell)){
 
-            cell* path = current_cell;
-            while (path != NULL){
-                printf("(%d, %d) => ", path->row, path->col);
-                path = path->parent;
-            }
+            cell* path = malloc(sizeof(cell));
+            path = current_cell;
+            // while (path != NULL){
+            //     printf("(%d, %d) => ", path->row, path->col);
+            //     path = path->parent;
+            // }
 
             printf("GOAL REACHED!\n");
-            return 0;
+            return path;
         }
 
         int dr[] = {-1, 1, 0, 0};
@@ -191,10 +191,26 @@ int a_star(int total_rows, int total_columns, int (*maze)[total_columns + 1], ce
     // for (int i = 0; i < closed_ct; i++){
     //     free(closed_list[i]);
     // }
-
     // no path found
-    return -1;
+    return NULL;
+}
 
+cell* reverse_linked_list(cell* param_1)
+{
+    cell *prev = NULL;
+    cell *next = NULL;
+    while (param_1 != NULL) {
+        next = param_1->parent;
+        param_1->parent = prev;
+        prev = param_1;
+        param_1 = next;
+    }
+    param_1 = prev;
+    return param_1;
+}
+
+void print_solution(){
+    
 }
 
 
@@ -251,7 +267,7 @@ int main(int av, char** ac){
     cell entry_cell;
     cell exit_cell;
 
-    if (create_maze(map_file, total_columns, maze, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
+    if (create_2d_arr(map_file, total_columns, maze, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
         write(2, "MAP ERROR\n", 11);
         return 1;
     }
@@ -265,9 +281,17 @@ int main(int av, char** ac){
 
     printf("Entrance: %d, %d\nExit: %d, %d\n", entry_cell.row, entry_cell.col, exit_cell.row, exit_cell.col);
 
-    if (a_star(total_rows, total_columns, maze, &entry_cell, &exit_cell) != 0){
+    cell* solution;
+    if ((solution = a_star(total_rows, total_columns, maze, &entry_cell, &exit_cell)) == NULL){
         write(2, "MAP ERROR\n", 11);
         return 1;
+
+    } else {
+        solution = reverse_linked_list(solution);
+        while (solution != NULL){
+            printf("(%d, %d)", solution->row, solution->col);
+            solution = solution->parent;
+        }
     }
 
     fclose(map_file);
