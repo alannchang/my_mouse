@@ -13,16 +13,16 @@ typedef struct Node {
     struct Node* parent;
 } cell;
 
-int get_dimensions(int map_file, char* width, char* trailing_char){
+int get_dimensions(char* map_parameters, char* width, char* trailing_char){
 
     char* temp = malloc(4);
     int i = 0;
 
-    while (isdigit(temp[i] = fgetc(map_file))) {
+    while (isdigit(*map_parameters)) {
         
         if (i > 2) return 1;
 
-        i++;
+        map_parameters++;
     }
 
     *trailing_char = temp[i];
@@ -268,25 +268,24 @@ int main(int av, char** ac){
         return 1;
     }
 
-    char* width = malloc(4);
-    char* length = malloc(4);
+    char *width, *length = malloc(4);
     char trailing_char;
 
-    if (get_dimensions(map_file, width, &trailing_char) != 0 || trailing_char != 'x') {
+    char* map_parameters = my_readline(map_file);
+
+    if (get_dimensions(map_parameters, width, &trailing_char) != 0 || trailing_char != 'x') {
         write(2, "invalid dimensions\n", 19);
         return 1;
     }
 
-    if (get_dimensions(map_file, length, &trailing_char) != 0) {
+    if (get_dimensions(map_parameters, length, &trailing_char) != 0) {
         write(2, "invalid dimensions\n", 19);
         return 1;
     }
     
     char full = trailing_char;
-    char empty = fgetc(map_file);
-    char path = fgetc(map_file);
-    char maze_entrance = fgetc(map_file);
-    char maze_exit = fgetc(map_file);
+    char empty, path, maze_entrance, maze_exit;
+    
 
     if (fgetc(map_file) != '\n') {
         write(2, "invalid dimensions\n", 19);
@@ -323,7 +322,7 @@ int main(int av, char** ac){
 
     print_solution(total_rows, total_columns, maze_arr, solution, full, empty, path, maze_entrance, maze_exit);
 
-    fclose(map_file);
+    close(map_file);
 
     return 0;
 }
