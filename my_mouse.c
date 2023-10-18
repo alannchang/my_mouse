@@ -19,9 +19,8 @@ int get_dimensions(char* map_parameters, char* width, char* trailing_char){
     int i = 0;
 
     while (isdigit(*map_parameters)) {
-        
         if (i > 2) return 1;
-
+        temp[i] = *map_parameters;
         map_parameters++;
     }
 
@@ -34,44 +33,55 @@ int get_dimensions(char* map_parameters, char* width, char* trailing_char){
     return 0;
 }
 
+int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance, char* maze_exit){
+    *empty = map_parameters[0];
+    *path = map_parameters[1];
+    *maze_entrance = map_parameters[2];
+    *maze_exit = map_parameters[3];
+    if (map_parameters[4] != '\0') return -1;
+    return 0;
+}
+
 int create_2d_arr(int map_file, int total_columns, int (*maze_arr)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
 
-    char temp;
     int row_index, col_index = 0;
 
-    while ((temp = fgetc(map_file)) != EOF) {
-        
-        if (temp == full) {
-            maze_arr[row_index][col_index] = 1;
-            col_index++; 
+    char* str = NULL;
+    while((str = my_readline(map_file)) != NULL){
+        int i = 0;
+        while (str[i] != '\0') {
+            
+            if (str[i] == full) {
+                maze_arr[row_index][col_index] = 1;
+                col_index++; 
+            }
+
+            else if (str[i] == empty) {
+                maze_arr[row_index][col_index] = 0;
+                col_index++;
+            }
+
+            else if (str[i] == maze_entrance) {
+                entry_cell->row = row_index;
+                entry_cell->col = col_index;
+                maze_arr[row_index][col_index] = 2;
+                col_index++;
+            } 
+            
+            else if (str[i] == maze_exit) {
+                exit_cell->row = row_index;
+                exit_cell->col = col_index;
+                maze_arr[row_index][col_index] = 3;
+                col_index++;
+            } 
+
+            else return 1;
+            i++;
         }
 
-        else if (temp == empty) {
-            maze_arr[row_index][col_index] = 0;
-            col_index++;
-        }
-
-        else if (temp == maze_entrance) {
-            entry_cell->row = row_index;
-            entry_cell->col = col_index;
-            maze_arr[row_index][col_index] = 2;
-            col_index++;
-        } 
-        
-        else if (temp == maze_exit) {
-            exit_cell->row = row_index;
-            exit_cell->col = col_index;
-            maze_arr[row_index][col_index] = 3;
-            col_index++;
-        } 
-        
-        else if (temp == '\n') {
-            maze_arr[row_index][col_index] = '\0';
-            col_index = 0;
-            row_index++;
-        }
-
-        else return 1;
+        maze_arr[row_index][col_index] = '\0';
+        col_index = 0;
+        row_index++;
     }
 
     return 0;
@@ -261,14 +271,14 @@ int main(int av, char** ac){
     }
 
 //  read the map parameters (first line)
-
     int map_file = open(ac[1], O_RDONLY);
     if (map_file == -1) {
         write(2, "invalid file\n", 13);
         return 1;
     }
 
-    char *width, *length = malloc(4);
+    char *width = malloc(4);
+    char *length = malloc(4);
     char trailing_char;
 
     char* map_parameters = my_readline(map_file);
@@ -286,14 +296,12 @@ int main(int av, char** ac){
     char full = trailing_char;
     char empty, path, maze_entrance, maze_exit;
     
-
-    if (fgetc(map_file) != '\n') {
+    if (get_chars(map_parameters, &empty, &path, &maze_entrance, &maze_exit) != 0) {
         write(2, "invalid dimensions\n", 19);
         return 1;
     }
 
 //  read the map and store it as a 2D array representation
-
     int total_rows = atoi(width);
     int total_columns = atoi(length);
 
@@ -307,7 +315,6 @@ int main(int av, char** ac){
     }
 
 // using a-star, find the shortest path or return NULL if no solution 
-
     cell* solution;
 
     if ((solution = a_star(total_rows, total_columns, maze_arr, &entry_cell, &exit_cell)) == NULL){
@@ -317,7 +324,6 @@ int main(int av, char** ac){
     } else solution = reverse_linked_list(solution);
 
 //  reconstruct map using "path" character indicating shortest path
-
     printf("%dx%d%c%c%c%c%c\n", total_rows, total_columns, full, empty, path, maze_entrance, maze_exit);
 
     print_solution(total_rows, total_columns, maze_arr, solution, full, empty, path, maze_entrance, maze_exit);
