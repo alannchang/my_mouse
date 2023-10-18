@@ -26,6 +26,7 @@ int get_dimensions(char** map_parameters, char* width, char* trailing_char){
     }
 
     *trailing_char = **map_parameters;
+    (*map_parameters)++;
     temp[i] = '\0';
 
     width = realloc(width, i);
@@ -34,19 +35,20 @@ int get_dimensions(char** map_parameters, char* width, char* trailing_char){
     return 0;
 }
 
-int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance, char* maze_exit){
-    *empty = map_parameters[0];
-    *path = map_parameters[1];
-    *maze_entrance = map_parameters[2];
-    *maze_exit = map_parameters[3];
+int get_chars(char** map_parameters, char* empty, char* path, char* maze_entrance, char* maze_exit){
+    *empty = *map_parameters[0];
+    *path = *map_parameters[1];
+    *maze_entrance = *map_parameters[2];
+    *maze_exit = *map_parameters[3];
     printf("Empty:%c Path:%c Entrance:%c Exit:%c", *empty, *path, *maze_entrance, *maze_exit);
-    if (map_parameters[4] != '\0') return -1;
+    if (*map_parameters[4] != '\0') return -1;
     return 0;
 }
 
 int create_2d_arr(int map_file, int total_columns, int (*maze_arr)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
 
-    int row_index, col_index = 0;
+    int row_index = 0;
+    int col_index = 0;
 
     char* str = NULL;
     while((str = my_readline(map_file)) != NULL){
@@ -290,32 +292,39 @@ int main(int av, char** ac){
         return 1;
     }
 
+    write(1, map_parameters, strlen(map_parameters));
+
     if (get_dimensions(&map_parameters, length, &trailing_char) != 0) {
         write(2, "invalid dimensions\n", 19);
         return 1;
     }
     
+    write(1, map_parameters, strlen(map_parameters));
+
     char full = trailing_char;
     char empty, path, maze_entrance, maze_exit;
+
     
-    if (get_chars(map_parameters, &empty, &path, &maze_entrance, &maze_exit) != 0) {
+    if (get_chars(&map_parameters, &empty, &path, &maze_entrance, &maze_exit) != 0) {
         write(2, "3nvalid dimensions\n", 19);
         return 1;
     }
-    printf("SUCCESS");
-
+    write(1, width, strlen(width));
+    write(1, length, strlen(length));
+    
 //  read the map and store it as a 2D array representation
     int total_rows = atoi(width);
     int total_columns = atoi(length);
 
     int maze_arr[total_rows + 1][total_columns + 1];
-    cell entry_cell;
-    cell exit_cell;
+    cell entry_cell, exit_cell;
 
     if (create_2d_arr(map_file, total_columns, maze_arr, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
         write(2, "MAP ERROR", 9);
         return 1;
     }
+
+    write(1, "SUCCESS", 7);
 
 // using a-star, find the shortest path or return NULL if no solution 
     cell* solution;
