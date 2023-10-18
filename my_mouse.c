@@ -13,18 +13,19 @@ typedef struct Node {
     struct Node* parent;
 } cell;
 
-int get_dimensions(char* map_parameters, char* width, char* trailing_char){
+int get_dimensions(char** map_parameters, char* width, char* trailing_char){
 
     char* temp = malloc(4);
     int i = 0;
 
-    while (isdigit(*map_parameters)) {
+    while (isdigit(**map_parameters)) {
         if (i > 2) return 1;
-        temp[i] = *map_parameters;
-        map_parameters++;
+        temp[i] = **map_parameters;
+        (*map_parameters)++;
+        i++;
     }
 
-    *trailing_char = temp[i];
+    *trailing_char = **map_parameters;
     temp[i] = '\0';
 
     width = realloc(width, i);
@@ -38,6 +39,7 @@ int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance
     *path = map_parameters[1];
     *maze_entrance = map_parameters[2];
     *maze_exit = map_parameters[3];
+    printf("Empty:%c Path:%c Entrance:%c Exit:%c", *empty, *path, *maze_entrance, *maze_exit);
     if (map_parameters[4] != '\0') return -1;
     return 0;
 }
@@ -283,12 +285,12 @@ int main(int av, char** ac){
 
     char* map_parameters = my_readline(map_file);
 
-    if (get_dimensions(map_parameters, width, &trailing_char) != 0 || trailing_char != 'x') {
+    if (get_dimensions(&map_parameters, width, &trailing_char) != 0 || trailing_char != 'x') {
         write(2, "invalid dimensions\n", 19);
         return 1;
     }
 
-    if (get_dimensions(map_parameters, length, &trailing_char) != 0) {
+    if (get_dimensions(&map_parameters, length, &trailing_char) != 0) {
         write(2, "invalid dimensions\n", 19);
         return 1;
     }
@@ -297,9 +299,10 @@ int main(int av, char** ac){
     char empty, path, maze_entrance, maze_exit;
     
     if (get_chars(map_parameters, &empty, &path, &maze_entrance, &maze_exit) != 0) {
-        write(2, "invalid dimensions\n", 19);
+        write(2, "3nvalid dimensions\n", 19);
         return 1;
     }
+    printf("SUCCESS");
 
 //  read the map and store it as a 2D array representation
     int total_rows = atoi(width);
