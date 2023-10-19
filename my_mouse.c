@@ -5,25 +5,27 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-
 typedef struct Node {
     int row, col, f, g, h;
     struct Node* parent;
 } cell;
 
-int get_dimensions(FILE* map_file, char* width, char* trailing_char){
+int get_dimensions(char** map_parameters, char* width, char* trailing_char){
 
     char* temp = malloc(4);
     int i = 0;
 
-    while (isdigit(temp[i] = fgetc(map_file))) {
+    while (isdigit(**map_parameters)) {
         
         if (i > 2) return 1;
-
+        temp[i] = **map_parameters;
+        (*map_parameters)++;
         i++;
     }
 
-    *trailing_char = temp[i];
+    
+    *trailing_char = **map_parameters;
+    (*map_parameters)++;
     temp[i] = '\0';
 
     width = realloc(width, i);
@@ -276,19 +278,21 @@ int main(int av, char** ac){
     char* length = malloc(4);
     char trailing_char;
 
-    char* map_parameters;
-    fgets(map_parameters, 12, map_file);
+    char* map_parameters = malloc(12);
+    if (fgets(map_parameters, 12, map_file) != NULL) printf("MAP PARAMETERS: %s\n", map_parameters);
 
-    if (get_dimensions(map_file, width, &trailing_char) != 0 || trailing_char != 'x') {
-        write(2, "invalid dimensions\n", 19);
+    if (get_dimensions(&map_parameters, width, &trailing_char) != 0 || trailing_char != 'x') {
+        write(2, "1nvalid dimensions\n", 19);
         return 1;
     }
 
-    if (get_dimensions(map_file, length, &trailing_char) != 0) {
-        write(2, "invalid dimensions\n", 19);
+    if (get_dimensions(&map_parameters, length, &trailing_char) != 0) {
+        write(2, "2nvalid dimensions\n", 19);
         return 1;
     }
-    
+
+    printf("WIDTH = %s, LENGTH = %s\n", width, length);
+
     char full = trailing_char;
     char empty = fgetc(map_file);
     char path = fgetc(map_file);
@@ -296,7 +300,7 @@ int main(int av, char** ac){
     char maze_exit = fgetc(map_file);
 
     if (fgetc(map_file) != '\n') {
-        write(2, "invalid dimensions\n", 19);
+        write(2, "3nvalid dimensions\n", 19);
         return 1;
     }
 
