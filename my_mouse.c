@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+
 typedef struct Node {
     int row, col, f, g, h;
     struct Node* parent;
@@ -31,6 +32,15 @@ int get_dimensions(char** map_parameters, char* width, char* trailing_char){
     width = realloc(width, i);
     strncpy(width, temp, i);
 
+    return 0;
+}
+
+int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance, char* maze_exit){
+    *empty = map_parameters[0];
+    *path = map_parameters[1];
+    *maze_entrance = map_parameters[2];
+    *maze_exit = map_parameters[3];
+    if (map_parameters[4] != '\n') return -1;
     return 0;
 }
 
@@ -291,18 +301,18 @@ int main(int av, char** ac){
         return 1;
     }
 
-    printf("WIDTH = %s, LENGTH = %s\n", width, length);
+    
 
     char full = trailing_char;
-    char empty = fgetc(map_file);
-    char path = fgetc(map_file);
-    char maze_entrance = fgetc(map_file);
-    char maze_exit = fgetc(map_file);
+    char empty, path, maze_entrance, maze_exit;
 
-    if (fgetc(map_file) != '\n') {
+    if ((get_chars(map_parameters, &empty, &path, &maze_entrance, &maze_exit)) != 0) {
         write(2, "3nvalid dimensions\n", 19);
         return 1;
     }
+
+    printf("WIDTH = %s, LENGTH = %s, Full: %c, Empty:%c, Path:%c, Entrance:%c, Exit:%c\n", width, length, full, empty, path, maze_entrance, maze_exit);
+
 
 //  read the map and store it as a 2D array representation
     int total_rows = atoi(width);
