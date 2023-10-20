@@ -53,33 +53,28 @@ int create_2d_arr(FILE* map_file, int total_columns, int (*maze_arr)[total_colum
     while ((temp = fgetc(map_file)) != EOF) {
         
         if (temp == full) {
-            maze_arr[row_index][col_index] = 1;
-            col_index++; 
+            maze_arr[row_index][col_index++] = 1;
         }
 
         else if (temp == empty) {
-            maze_arr[row_index][col_index] = 0;
-            col_index++;
+            maze_arr[row_index][col_index++] = 0;
         }
 
         else if (temp == maze_entrance) {
             entry_cell->row = row_index;
             entry_cell->col = col_index;
-            maze_arr[row_index][col_index] = 2;
-            col_index++;
+            maze_arr[row_index][col_index++] = 2;
         } 
         
         else if (temp == maze_exit) {
             exit_cell->row = row_index;
             exit_cell->col = col_index;
-            maze_arr[row_index][col_index] = 3;
-            col_index++;
+            maze_arr[row_index][col_index++] = 3;
         } 
         
         else if (temp == '\n') {
-            maze_arr[row_index][col_index] = '\0';
+            maze_arr[row_index++][col_index] = '\0';
             col_index = 0;
-            row_index++;
         }
 
         else return 1;
@@ -289,29 +284,35 @@ int main(int av, char** ac){
     char trailing_char;
 
     char* map_parameters = malloc(12);
-    if (fgets(map_parameters, 12, map_file) != NULL) printf("MAP PARAMETERS: %s\n", map_parameters);
+    if (fgets(map_parameters, 15, map_file) == NULL){
+        write(2, "Invalid dimensions\n", 19);
+        return 1;
+    }
 
     if (get_dimensions(&map_parameters, width, &trailing_char) != 0 || trailing_char != 'x') {
-        write(2, "1nvalid dimensions\n", 19);
+        write(2, "Invalid dimensions\n", 19);
         return 1;
     }
 
     if (get_dimensions(&map_parameters, length, &trailing_char) != 0) {
-        write(2, "2nvalid dimensions\n", 19);
+        write(2, "Invalid dimensions\n", 19);
         return 1;
     }
 
-    
+    // printf("WIDTH = %s, LENGTH = %s\n", width, length);
+    // printf("MAP PARAMETERS = %s\n", map_parameters);
 
     char full = trailing_char;
     char empty, path, maze_entrance, maze_exit;
+
+    // printf("Full: %c,", full);
 
     if ((get_chars(map_parameters, &empty, &path, &maze_entrance, &maze_exit)) != 0) {
         write(2, "3nvalid dimensions\n", 19);
         return 1;
     }
 
-    printf("WIDTH = %s, LENGTH = %s, Full: %c, Empty:%c, Path:%c, Entrance:%c, Exit:%c\n", width, length, full, empty, path, maze_entrance, maze_exit);
+    // printf(" Empty: %c, Path: %c, Entrance: %c, Exit: %c\n", empty, path, maze_entrance, maze_exit);
 
 
 //  read the map and store it as a 2D array representation
