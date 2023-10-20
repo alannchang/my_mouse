@@ -46,38 +46,45 @@ int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance
 
 int create_2d_arr(FILE* map_file, int total_columns, int (*maze_arr)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
 
-    char temp;
+    char line[total_columns + 1];
+    
     int row_index = 0;
     int col_index = 0;
 
-    while ((temp = fgetc(map_file)) != EOF) {
-        
-        if (temp == full) {
-            maze_arr[row_index][col_index++] = 1;
-        }
+    while ((fgets(line, total_columns + 1, map_file)) != NULL) {
 
-        else if (temp == empty) {
-            maze_arr[row_index][col_index++] = 0;
-        }
-
-        else if (temp == maze_entrance) {
-            entry_cell->row = row_index;
-            entry_cell->col = col_index;
-            maze_arr[row_index][col_index++] = 2;
-        } 
+        int i = 0;
         
-        else if (temp == maze_exit) {
-            exit_cell->row = row_index;
-            exit_cell->col = col_index;
-            maze_arr[row_index][col_index++] = 3;
-        } 
-        
-        else if (temp == '\n') {
-            maze_arr[row_index++][col_index] = '\0';
-            col_index = 0;
-        }
+        while(line[i] != '\0'){
+            
+            if (line[i] == full) {
+                maze_arr[row_index][col_index++] = 1;
+            }
 
-        else return 1;
+            else if (line[i] == empty) {
+                maze_arr[row_index][col_index++] = 0;
+            }
+
+            else if (line[i] == maze_entrance) {
+                entry_cell->row = row_index;
+                entry_cell->col = col_index;
+                maze_arr[row_index][col_index++] = 2;
+            } 
+            
+            else if (line[i] == maze_exit) {
+                exit_cell->row = row_index;
+                exit_cell->col = col_index;
+                maze_arr[row_index][col_index++] = 3;
+            } 
+            
+            else if (line[i] == '\n') {
+                maze_arr[row_index++][col_index] = '\0';
+                col_index = 0;
+            }
+
+            else return 1;
+            i++;
+        }
     }
 
     return 0;
