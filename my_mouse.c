@@ -11,6 +11,11 @@ typedef struct Node {
     struct Node* parent;
 } cell;
 
+typedef struct {
+    int row[4];
+    int col[4];
+} Direction;
+
 int get_dimensions(char** map_parameters, char* dimension, char* trailing_char){
     char* temp = malloc(4);
     int i = 0;
@@ -80,70 +85,56 @@ int get_h(int row, int col, cell* exit_cell){
     return h;
 }
 
+cell* find_lowest_f_cell(cell** open_list, int open_ct, int* lowest_f_index) {
+    for (int i = 1; i < open_ct; i++) {
+        if (open_list[i]->f < open_list[*lowest_f_index]->f) *lowest_f_index = i;
+    }
+    return open_list[*lowest_f_index];
+}
+
+bool is_in_list(cell** list, int count, int row, int col) {
+    for (int i = 0; i < count; i++) {
+        if (list[i]->row == row && list[i]->col == col) {
+            return true;
+        }
+    }
+    return false;
+}
+
 cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 1], cell* entry_cell, cell* exit_cell){
 
     // two lists to keep track of cells that have or have not been considered
     cell* open_list[total_rows * total_columns];
     cell* closed_list[total_rows * total_columns];
-
     int open_ct = 0;
     int closed_ct = 0;
-
     entry_cell->f = 0;
     entry_cell->g = 0;
     entry_cell->h = 0;
     entry_cell->parent = NULL;
-
     // open list will start with the entry cell
     open_list[open_ct++] = entry_cell;
-
     while (open_ct > 0){
-
-        // find the cell with the lowest f value in the open list
         int lowest_f_index = 0;
-
-        for (int i = 1; i < open_ct; i++){
-            if (open_list[i]->f < open_list[lowest_f_index]->f) lowest_f_index = i;
-        }
-
-        cell* current_cell = open_list[lowest_f_index];
-
+        cell* current_cell = find_lowest_f_cell(open_list, open_ct, &lowest_f_index);
         // remove that cell from open list and add it to the closed list
         for (int i = lowest_f_index; i < open_ct - 1; i++){
             open_list[i] = open_list[i + 1];
         }
         open_ct--;
-
         closed_list[closed_ct++] = current_cell;
-
         // if that cell is the exit, return it
-        if (reached_exit(current_cell, exit_cell)){
-            return current_cell;
-        }
-
+        if (reached_exit(current_cell, exit_cell)) return current_cell;
         // otherwise, continue search in each direction (up, left, down, right)
-        int dr[] = {-1, 0, 0, 1};
-        int dc[] = {0, -1, 1, 0};
-
+        Direction direction = {{-1, 0, 0, 1}, {0, -1, 1, 0}};
         for (int i = 0; i < 4; i++){
-
-            int new_row = current_cell->row + dr[i];
-            int new_col = current_cell->col + dc[i];
-
+            int new_row = current_cell->row + direction.row[i];
+            int new_col = current_cell->col + direction.col[i];
             // check if cell is one that we can move to
             if (is_valid(new_row, new_col, total_rows, total_columns) && maze_arr[new_row][new_col] != 1){
-
                 // check if cell is already in closed list  
-                bool in_closed_list = false;
-                for (int j = 0; j < closed_ct; j++){
-                    if (closed_list[j]->row == new_row && closed_list[j]->col == new_col){
-                        in_closed_list = true;
-                        break;
-                    }
-                }
-
+                bool in_closed_list = is_in_list(closed_list, closed_ct, new_row, new_col);
                 if (!in_closed_list){
-
                     // create successor
                     cell* successor = (cell*)malloc(sizeof(cell));
                     successor->row = new_row;
@@ -151,25 +142,12 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
                     successor->parent = current_cell;
                     successor->g = current_cell->g + 1;
                     successor->h = get_h(new_row, new_col, exit_cell);
-
                     // check if cell is already in open list
-                    bool in_open_list = false;
-
-                    for (int j = 0; j < open_ct; j++){
-
-                        if (open_list[j]-> row == new_row && open_list[j]->col == new_col){
-                            in_open_list = true;
-                            break;
-                        }
-                    }
-
+                    bool in_open_list = is_in_list(open_list, open_ct, new_row, new_col);
                     if (!in_open_list){
-
                         // add successor to open list
                         open_list[open_ct++] = successor;
-
                     } else {
-
                         // dispose of successor
                         free(successor);
                     }
