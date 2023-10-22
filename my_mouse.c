@@ -42,27 +42,51 @@ int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance
     return 0;
 }
 
-int create_2d_arr(FILE* map_file, int total_columns, int (*maze_arr)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell){
+int handle_full(int row_index, int col_index, int total_columns, int (*maze_arr)[total_columns + 1]) {
+    maze_arr[row_index][col_index] = 1;
+    return col_index + 1;
+}
+
+int handle_empty(int row_index, int col_index, int total_columns, int (*maze_arr)[total_columns + 1]) {
+    maze_arr[row_index][col_index] = 0;
+    return col_index + 1;
+}
+
+int handle_entrance(int row_index, int col_index, int total_columns, int (*maze_arr)[total_columns + 1], cell* entry_cell) {
+    entry_cell->row = row_index;
+    entry_cell->col = col_index;
+    maze_arr[row_index][col_index] = 2;
+    return col_index + 1;
+}
+
+int handle_exit(int row_index, int col_index, int total_columns, int (*maze_arr)[total_columns + 1], cell* exit_cell) {
+    exit_cell->row = row_index;
+    exit_cell->col = col_index;
+    maze_arr[row_index][col_index] = 3;
+    return col_index + 1;
+}
+
+int handle_newline(int row_index, int col_index, int total_columns, int (*maze_arr)[total_columns + 1]) {
+    maze_arr[row_index][col_index] = '\0';
+    return row_index + 1;
+}
+
+int create_2d_arr(FILE* map_file, int total_columns, int (*maze_arr)[total_columns + 1], char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell) {
     char line[total_columns + 1];
     int row_index = 0;
     int col_index = 0;
     while ((fgets(line, total_columns + 1, map_file)) != NULL) {
         int i = 0;
         while(line[i] != '\0'){
-            if (line[i] == full) maze_arr[row_index][col_index++] = 1;
-            else if (line[i] == empty) maze_arr[row_index][col_index++] = 0;
-            else if (line[i] == maze_entrance) {
-                entry_cell->row = row_index;
-                entry_cell->col = col_index;
-                maze_arr[row_index][col_index++] = 2;
-            } 
-            else if (line[i] == maze_exit) {
-                exit_cell->row = row_index;
-                exit_cell->col = col_index;
-                maze_arr[row_index][col_index++] = 3;
-            } 
-            else if (line[i] == '\n') {
-                maze_arr[row_index++][col_index] = '\0';
+            if (line[i] == full) col_index = handle_full(row_index, col_index, total_columns, maze_arr);
+            else if (line[i] == empty) 
+                col_index = handle_empty(row_index, col_index, total_columns, maze_arr);
+            else if (line[i] == maze_entrance) 
+                col_index = handle_entrance(row_index, col_index, total_columns, maze_arr, entry_cell);
+            else if (line[i] == maze_exit) 
+                col_index = handle_exit(row_index, col_index, total_columns, maze_arr, exit_cell);
+            else if (line[i] == '\n'){
+                row_index = handle_newline(row_index, col_index, total_columns, maze_arr);
                 col_index = 0;
             }
             else return 1;
@@ -194,7 +218,6 @@ void print_solution(int total_rows, int total_columns, int (*maze_arr)[total_col
     }
     printf("%d STEPS!\n", ct);
 }
-
 
 int main(int av, char** ac){
     if (av != 2) {
