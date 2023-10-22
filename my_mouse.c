@@ -129,9 +129,7 @@ cell* a_star(int total_rows, int total_columns, int (*maze_arr)[total_columns + 
     cell* closed_list[total_rows * total_columns];
     int open_ct = 0;
     int closed_ct = 0;
-    entry_cell->f = 0;
-    entry_cell->g = 0;
-    entry_cell->h = 0;
+    entry_cell->f = entry_cell->g = entry_cell->h = 0;
     entry_cell->parent = NULL;
     open_list[open_ct++] = entry_cell;
     while (open_ct > 0){
