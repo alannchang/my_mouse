@@ -5,7 +5,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-
 typedef struct{
     char full;
     char empty;
@@ -42,30 +41,30 @@ typedef struct {
     int col;
 } new;
 
-int get_dimensions(char** map_parameters, char* dimension, char* trailing_char){
+int get_dimensions(char** map_details, char* dimension, char* trailing_char){
     char* temp = malloc(4);
     int i = 0;
-    while (isdigit(**map_parameters)) {
+    while (isdigit(**map_details)) {
         if (i > 2) return 1;
-        temp[i] = **map_parameters;
-        (*map_parameters)++;
+        temp[i] = **map_details;
+        (*map_details)++;
         i++;
     }
-    *trailing_char = **map_parameters;
-    (*map_parameters)++;
+    *trailing_char = **map_details;
+    (*map_details)++;
     temp[i] = '\0';
     dimension = realloc(dimension, i);
     strncpy(dimension, temp, i);
     return 0;
 }
 
-params set_params(char trailing_char, char* map_parameters){
+params set_params(char trailing_char, char* map_details){
     params params;
     params.full = trailing_char;
-    params.empty = map_parameters[0];
-    params.path = map_parameters[1];
-    params.maze_entrance = map_parameters[2];
-    params.maze_exit = map_parameters[3];
+    params.empty = map_details[0];
+    params.path = map_details[1];
+    params.maze_entrance = map_details[2];
+    params.maze_exit = map_details[3];
     return params;
 }
 
@@ -251,6 +250,13 @@ int path_printer(int i, int j, cell* solution, char empty, char path){
     return 0;
 }
 
+cell* solve_map(FILE* map_file, map map, params params, cell* entry_cell, cell* exit_cell, cell** path_list){
+    
+    if (create_2d_arr(map_file, map, params, entry_cell, exit_cell) != 0) return NULL;
+    if ((*path_list = a_star_algo(map, entry_cell, exit_cell)) == NULL) return NULL;
+    else return reverse_linked_list(*path_list);
+}
+
 void print_solution(map map, cell* path_list, params params){
     int ct = 0;
     for (int i = 0; i < map.total_rows; i++){
@@ -278,6 +284,11 @@ void print_solution(map map, cell* path_list, params params){
     printf("%d STEPS!\n", ct);
 }
 
+void printer(map map, params params, cell* path_list){
+    printf("%dx%d%c%c%c%c%c\n", map.total_rows, map.total_columns, params.full, params.empty, params.path, params.maze_entrance, params.maze_exit);
+    print_solution(map, path_list, params);
+}
+
 int main(int av, char** ac){
     if (av != 2) {
         write(2, "invalid number of arguments\n", 27); 
@@ -287,27 +298,21 @@ int main(int av, char** ac){
     char* width = malloc(4);
     char* length = malloc(4);
     char trailing_char;
-    char* map_parameters = malloc(12);
-    fgets(map_parameters, 15, map_file);
-    get_dimensions(&map_parameters, width, &trailing_char);
-    get_dimensions(&map_parameters, length, &trailing_char);
-    params params = set_params(trailing_char, map_parameters);
+    char* map_details = malloc(12);
+    fgets(map_details, 15, map_file);
+    get_dimensions(&map_details, width, &trailing_char);
+    get_dimensions(&map_details, length, &trailing_char);
+    params params = set_params(trailing_char, map_details);
     map map = init_map(width, length);
     cell entry_cell, exit_cell;
 
-    if (create_2d_arr(map_file, map, params, &entry_cell, &exit_cell) != 0){
-        write(2, "MAP ERROR", 9);
-        return 1;
-    }
     cell* path_list;
-
-    if ((path_list = a_star_algo(map, &entry_cell, &exit_cell)) == NULL){
+    if ((path_list = solve_map(map_file, map, params, &entry_cell, &exit_cell, &path_list)) == NULL){
         write(2, "MAP ERROR", 9);
-        return 1;
+        return 1;     
+    }   
 
-    } else path_list = reverse_linked_list(path_list);
-    printf("%dx%d%c%c%c%c%c\n", map.total_rows, map.total_columns, params.full, params.empty, params.path, params.maze_entrance, params.maze_exit);
-    print_solution(map, path_list, params);
+    printer(map, params, path_list);
     free(map.arr);
     return 0;
 }
