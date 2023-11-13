@@ -7,6 +7,14 @@
 #include <stdbool.h>
 
 typedef struct{
+    char full;
+    char empty;
+    char path; 
+    char maze_entrance;
+    char maze_exit;
+} params;
+
+typedef struct{
     int total_rows;
     int total_columns;
     int** arr;
@@ -29,6 +37,11 @@ typedef struct {
     int col[4];
 } Direction;
 
+typedef struct {
+    int row;
+    int col;
+} new;
+
 int get_dimensions(char** map_parameters, char* dimension, char* trailing_char){
     char* temp = malloc(4);
     int i = 0;
@@ -46,13 +59,14 @@ int get_dimensions(char** map_parameters, char* dimension, char* trailing_char){
     return 0;
 }
 
-int get_chars(char* map_parameters, char* empty, char* path, char* maze_entrance, char* maze_exit){
-    *empty = map_parameters[0];
-    *path = map_parameters[1];
-    *maze_entrance = map_parameters[2];
-    *maze_exit = map_parameters[3];
-    if (map_parameters[4] != '\n') return -1;
-    return 0;
+params set_params(char trailing_char, char* map_parameters){
+    params params;
+    params.full = trailing_char;
+    params.empty = map_parameters[0];
+    params.path = map_parameters[1];
+    params.maze_entrance = map_parameters[2];
+    params.maze_exit = map_parameters[3];
+    return params;
 }
 
 map init_map(const char* width, const char* length){
@@ -93,19 +107,19 @@ int handle_newline(int row_index, int col_index, map map) {
     return row_index + 1;
 }
 
-int create_2d_arr(FILE* map_file, map map, char full, char empty, char maze_entrance, char maze_exit, cell* entry_cell, cell* exit_cell) {
+int create_2d_arr(FILE* map_file, map map, params params, cell* entry_cell, cell* exit_cell) {
     char line[map.total_columns + 1];
     int row_index = 0;
     int col_index = 0;
     while ((fgets(line, map.total_columns + 1, map_file)) != NULL) {
         int i = 0;
         while(line[i] != '\0'){
-            if (line[i] == full) col_index = handle_full(row_index, col_index, map);
-            else if (line[i] == empty) 
+            if (line[i] == params.full) col_index = handle_full(row_index, col_index, map);
+            else if (line[i] == params.empty) 
                 col_index = handle_empty(row_index, col_index, map);
-            else if (line[i] == maze_entrance) 
+            else if (line[i] == params.maze_entrance) 
                 col_index = handle_entrance(row_index, col_index, map, entry_cell);
-            else if (line[i] == maze_exit) 
+            else if (line[i] == params.maze_exit) 
                 col_index = handle_exit(row_index, col_index, map, exit_cell);
             else if (line[i] == '\n'){
                 row_index = handle_newline(row_index, col_index, map);
@@ -118,8 +132,8 @@ int create_2d_arr(FILE* map_file, map map, char full, char empty, char maze_entr
     return 0;
 }
 
-bool is_valid(int new_row, int new_col, map map){
-    return (new_row >= 0) && (new_row < map.total_rows) && (new_col >= 0) && (new_col < map.total_columns);
+bool is_valid(new new, map map){
+    return (new.row >= 0) && (new.row < map.total_rows) && (new.col >= 0) && (new.col < map.total_columns);
 }
 
 bool reached_exit(cell* current_cell, cell* exit_cell){
@@ -138,9 +152,9 @@ cell* find_lowest_f_cell(cell** open_list, int open_ct, int* lowest_f_index) {
     return open_list[*lowest_f_index];
 }
 
-bool is_in_list(cell** list, int count, int row, int col) {
+bool is_in_list(cell** list, int count, new new) {
     for (int i = 0; i < count; i++) {
-        if (list[i]->row == row && list[i]->col == col) return true;
+        if (list[i]->row == new.row && list[i]->col == new.col) return true;
     }
     return false;
 }
@@ -162,12 +176,35 @@ void init_entry_cell(cell* entry_cell){
     entry_cell->parent = NULL;
 }
 
+new init_new(cell* current_cell, Direction direction, int i){
+    new new;
+    new.row = current_cell->row + direction.row[i];
+    new.col = current_cell->col + direction.col[i];
+    return new;
+}
+
 void init_successor(cell* successor, int new_row, int new_col, cell* current_cell, cell* exit_cell){
     successor->row = new_row;
     successor->col = new_col;
     successor->parent = current_cell;
     successor->g = current_cell->g + 1;
     successor->h = get_h(new_row, new_col, exit_cell);
+}
+
+void check_lists(cell* current_cell, Direction direction, map map, a_star* a_star, cell* exit_cell){
+    for (int i = 0; i < 4; i++){
+        new new = init_new(current_cell, direction, i);
+        if (is_valid(new, map) && map.arr[new.row][new.col] != 1){
+            bool in_closed_list = is_in_list(a_star->closed_list, a_star->closed_ct, new);
+            if (!in_closed_list){
+                cell* successor = (cell*)malloc(sizeof(cell));
+                init_successor(successor, new.row, new.col, current_cell, exit_cell);
+                bool in_open_list = is_in_list(a_star->open_list, a_star->open_ct, new);
+                if (!in_open_list) a_star->open_list[a_star->open_ct++] = successor;
+                else free(successor);
+            }
+        }
+    }
 }
 
 cell* a_star_algo(map map, cell* entry_cell, cell* exit_cell){
@@ -183,20 +220,7 @@ cell* a_star_algo(map map, cell* entry_cell, cell* exit_cell){
         a_star.closed_list[a_star.closed_ct++] = current_cell;
         if (reached_exit(current_cell, exit_cell)) return current_cell;
         Direction direction = {{-1, 0, 0, 1}, {0, -1, 1, 0}};
-        for (int i = 0; i < 4; i++){
-            int new_row = current_cell->row + direction.row[i];
-            int new_col = current_cell->col + direction.col[i];
-            if (is_valid(new_row, new_col, map) && map.arr[new_row][new_col] != 1){
-                bool in_closed_list = is_in_list(a_star.closed_list, a_star.closed_ct, new_row, new_col);
-                if (!in_closed_list){
-                    cell* successor = (cell*)malloc(sizeof(cell));
-                    init_successor(successor, new_row, new_col, current_cell, exit_cell);
-                    bool in_open_list = is_in_list(a_star.open_list, a_star.open_ct, new_row, new_col);
-                    if (!in_open_list) a_star.open_list[a_star.open_ct++] = successor;
-                    else free(successor);
-                }
-            }
-        }
+        check_lists(current_cell, direction, map, &a_star, exit_cell);
     }
     return NULL;
 }
@@ -227,22 +251,22 @@ int path_printer(int i, int j, cell* solution, char empty, char path){
     return 0;
 }
 
-void print_solution(map map, cell* path_list, char full, char empty, char path, char maze_entrance, char maze_exit){
+void print_solution(map map, cell* path_list, params params){
     int ct = 0;
     for (int i = 0; i < map.total_rows; i++){
         for (int j = 0; j < map.total_columns; j++) {
             switch(map.arr[i][j]){
                 case 0: 
-                    if ((path_printer(i, j, path_list, empty, path)) == 1) ct++;
+                    if ((path_printer(i, j, path_list, params.empty, params.path)) == 1) ct++;
                     break;
                 case 1: 
-                    putchar(full);
+                    putchar(params.full);
                     break;
                 case 2: 
-                    putchar(maze_entrance);
+                    putchar(params.maze_entrance);
                     break;
                 case 3: 
-                    putchar(maze_exit);
+                    putchar(params.maze_exit);
                     break;
                 case 10: 
                     putchar('\n');
@@ -267,13 +291,11 @@ int main(int av, char** ac){
     fgets(map_parameters, 15, map_file);
     get_dimensions(&map_parameters, width, &trailing_char);
     get_dimensions(&map_parameters, length, &trailing_char);
-    char full = trailing_char;
-    char empty, path, maze_entrance, maze_exit;
-    get_chars(map_parameters, &empty, &path, &maze_entrance, &maze_exit);
+    params params = set_params(trailing_char, map_parameters);
     map map = init_map(width, length);
     cell entry_cell, exit_cell;
 
-    if (create_2d_arr(map_file, map, full, empty, maze_entrance, maze_exit, &entry_cell, &exit_cell) != 0){
+    if (create_2d_arr(map_file, map, params, &entry_cell, &exit_cell) != 0){
         write(2, "MAP ERROR", 9);
         return 1;
     }
@@ -284,8 +306,8 @@ int main(int av, char** ac){
         return 1;
 
     } else path_list = reverse_linked_list(path_list);
-    printf("%dx%d%c%c%c%c%c\n", map.total_rows, map.total_columns, full, empty, path, maze_entrance, maze_exit);
-    print_solution(map, path_list, full, empty, path, maze_entrance, maze_exit);
+    printf("%dx%d%c%c%c%c%c\n", map.total_rows, map.total_columns, params.full, params.empty, params.path, params.maze_entrance, params.maze_exit);
+    print_solution(map, path_list, params);
     free(map.arr);
     return 0;
 }
