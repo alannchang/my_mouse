@@ -50,7 +50,7 @@ typedef struct{
 typedef struct{
     int row;
     int col;
-} new;
+} newx;
 
 int get_dimensions(char** first_line, char* dimension, char* trailing_char);
 
@@ -77,7 +77,6 @@ bool is_valid(new new, map map);
 bool reached_exit(cell* current_cell, cell* exit_cell);
 
 int get_h(int row, int col, cell* exit_cell);
-
 
 cell* find_lowest_f_cell(cell** open_list, int open_ct, int* lowest_f_index);
 
