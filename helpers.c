@@ -255,4 +255,3 @@ void printer(map map, symbol symbol, cell* path_list) {
     printf("%dx%d%c%c%c%c%c\n", map.total_rows, map.total_columns, symbol.full, symbol.empty, symbol.path, symbol.maze_entrance, symbol.maze_exit);
     print_solution(map, path_list, symbol);
 }
-
