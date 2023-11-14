@@ -1,17 +1,18 @@
 CFLAGS = -Wall -Wextra -Werror
 TARGET = my_mouse
-OBJ = my_mouse.o
-SRC = my_mouse.c
+SRC = my_mouse.c helpers.c
+OBJ = $(SRC:.c=.o)
+
 all : $(TARGET)
 
 $(TARGET) : $(OBJ)
-	gcc $(CFLAGS) -o $(TARGET) $(OBJ) 
+	gcc $(CFLAGS) -o $(TARGET) $(OBJ)
 
-$(OBJ) : $(SRC)
-	gcc $(CFLAGS) -c $(SRC)
+%.o: %.c
+	gcc $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o
+	rm -f $(OBJ)
 
 fclean: clean
 	rm -f $(TARGET)
