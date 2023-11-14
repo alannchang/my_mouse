@@ -50,7 +50,7 @@ typedef struct{
 typedef struct{
     int row;
     int col;
-} newx;
+} new;
 
 int get_dimensions(char** first_line, char* dimension, char* trailing_char);
 
