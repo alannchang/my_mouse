@@ -20,6 +20,13 @@ typedef struct{
     int** arr;
 } map;
 
+typedef struct{
+    char* width;
+    char* length;
+    char trailing_char;
+    char* first_line;
+} parameter;
+
 typedef struct Node{
     int row, col, f, g, h;
     struct Node* parent;
@@ -57,6 +64,17 @@ int get_dimensions(char** first_line, char* dimension, char* trailing_char){
     dimension = realloc(dimension, i);
     strncpy(dimension, temp, i);
     return 0;
+}
+
+parameter set_parameters(FILE* map_file){
+    parameter parameter;
+    parameter.width = malloc(4);
+    parameter.length = malloc(4);
+    parameter.first_line = malloc(12);
+    fgets(parameter.first_line, 15, map_file);
+    get_dimensions(&parameter.first_line, parameter.width, &parameter.trailing_char);
+    get_dimensions(&parameter.first_line, parameter.length, &parameter.trailing_char);
+    return parameter;
 }
 
 symbol set_symbols(char trailing_char, char* first_line){
@@ -296,15 +314,9 @@ int main(int av, char** ac){
         return 1;
     }
     FILE* map_file = fopen(ac[1], "r");
-    char* width = malloc(4);
-    char* length = malloc(4);
-    char trailing_char;
-    char* first_line = malloc(12);
-    fgets(first_line, 15, map_file);
-    get_dimensions(&first_line, width, &trailing_char);
-    get_dimensions(&first_line, length, &trailing_char);
-    symbol symbol = set_symbols(trailing_char, first_line);
-    map map = init_map(width, length);
+    parameter parameter = set_parameters(map_file);
+    symbol symbol = set_symbols(parameter.trailing_char, parameter.first_line);
+    map map = init_map(parameter.width, parameter.length);
     cell entry_cell, exit_cell;
 
     cell* path_list;
