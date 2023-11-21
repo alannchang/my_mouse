@@ -1,5 +1,5 @@
-#ifndef HELPERS_H
-#define HELPERS_H
+#ifndef MY_MOUSE_H
+#define MY_MOUSE_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +50,7 @@ typedef struct{
 typedef struct{
     int row;
     int col;
-} new;
+} new_cell;
 
 int get_dimensions(char** first_line, char* dimension, char* trailing_char);
 
@@ -72,7 +72,7 @@ int handle_newline(int row_index, int col_index, map map);
 
 int create_2d_arr(FILE* map_file, map map, symbol symbol, cell* entry_cell, cell* exit_cell);
 
-bool is_valid(new new, map map);
+bool is_valid(new_cell new_cell, map map);
 
 bool reached_exit(cell* current_cell, cell* exit_cell);
 
@@ -80,13 +80,13 @@ int get_h(int row, int col, cell* exit_cell);
 
 cell* find_lowest_f_cell(cell** open_list, int open_ct, int* lowest_f_index);
 
-bool is_in_list(cell** list, int count, new new);
+bool is_in_list(cell** list, int count, new_cell new_cell);
 
 a_star init_a_star(map map, cell* entry_cell);
 
 void init_entry_cell(cell* entry_cell);
 
-new init_new(cell* current_cell, direction dir, int i);
+new_cell init_new_cell(cell* current_cell, direction dir, int i);
 
 void init_successor(cell* successor, int new_row, int new_col, cell* current_cell, cell* exit_cell);
 

@@ -1,4 +1,4 @@
-#include "helpers.h"
+#include "../include/my_mouse.h"
 
 int main(int av, char** ac){
     if (av != 2) {

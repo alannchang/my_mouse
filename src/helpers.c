@@ -1,4 +1,4 @@
-#include "helpers.h"
+#include "../include/my_mouse.h"
 
 int get_dimensions(char** first_line, char* dimension, char* trailing_char) {
     char* temp = malloc(4);
@@ -101,8 +101,8 @@ int create_2d_arr(FILE* map_file, map map, symbol symbol, cell* entry_cell, cell
     return 0;
 }
 
-bool is_valid(new new, map map) {
-    return (new.row >= 0) && (new.row < map.total_rows) && (new.col >= 0) && (new.col < map.total_columns);
+bool is_valid(new_cell new_cell, map map) {
+    return (new_cell.row >= 0) && (new_cell.row < map.total_rows) && (new_cell.col >= 0) && (new_cell.col < map.total_columns);
 }
 
 bool reached_exit(cell* current_cell, cell* exit_cell) {
@@ -121,9 +121,9 @@ cell* find_lowest_f_cell(cell** open_list, int open_ct, int* lowest_f_index) {
     return open_list[*lowest_f_index];
 }
 
-bool is_in_list(cell** list, int count, new new) {
+bool is_in_list(cell** list, int count, new_cell new_cell) {
     for (int i = 0; i < count; i++) {
-        if (list[i]->row == new.row && list[i]->col == new.col) return true;
+        if (list[i]->row == new_cell.row && list[i]->col == new_cell.col) return true;
     }
     return false;
 }
@@ -145,11 +145,11 @@ void init_entry_cell(cell* entry_cell) {
     entry_cell->parent = NULL;
 }
 
-new init_new(cell* current_cell, direction dir, int i) {
-    new new;
-    new.row = current_cell->row + dir.row[i];
-    new.col = current_cell->col + dir.col[i];
-    return new;
+new_cell init_new(cell* current_cell, direction dir, int i) {
+    new_cell new_cell;
+    new_cell.row = current_cell->row + dir.row[i];
+    new_cell.col = current_cell->col + dir.col[i];
+    return new_cell;
 }
 
 void init_successor(cell* successor, int new_row, int new_col, cell* current_cell, cell* exit_cell) {
@@ -162,13 +162,13 @@ void init_successor(cell* successor, int new_row, int new_col, cell* current_cel
 
 void check_lists(cell* current_cell, direction dir, map map, a_star* a_star, cell* exit_cell) {
     for (int i = 0; i < 4; i++){
-        new new = init_new(current_cell, dir, i);
-        if (is_valid(new, map) && map.arr[new.row][new.col] != 1){
-            bool in_closed_list = is_in_list(a_star->closed_list, a_star->closed_ct, new);
+        new_cell new_cell = init_new(current_cell, dir, i);
+        if (is_valid(new_cell, map) && map.arr[new_cell.row][new_cell.col] != 1){
+            bool in_closed_list = is_in_list(a_star->closed_list, a_star->closed_ct, new_cell);
             if (!in_closed_list){
                 cell* successor = (cell*)malloc(sizeof(cell));
-                init_successor(successor, new.row, new.col, current_cell, exit_cell);
-                bool in_open_list = is_in_list(a_star->open_list, a_star->open_ct, new);
+                init_successor(successor, new_cell.row, new_cell.col, current_cell, exit_cell);
+                bool in_open_list = is_in_list(a_star->open_list, a_star->open_ct, new_cell);
                 if (!in_open_list) a_star->open_list[a_star->open_ct++] = successor;
                 else free(successor);
             }
