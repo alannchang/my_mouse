@@ -1,18 +1,23 @@
 CFLAGS = -Wall -Wextra -Werror -g3 -fsanitize=address
 TARGET = my_mouse
-SRC = my_mouse.c helpers.c
-OBJ = $(SRC:.c=.o)
+SRC_DIR = src
+INCLUDE_DIR = include
+OBJ_DIR = obj
 
-all : $(TARGET)
+SRC = $(wildcard $(SRC_DIR)/*.c)
+OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 
-$(TARGET) : $(OBJ)
+all: $(TARGET)
+
+$(TARGET): $(OBJ)
 	gcc $(CFLAGS) -o $(TARGET) $(OBJ)
 
-%.o: %.c
-	gcc $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	mkdir -p $(OBJ_DIR)
+	gcc $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 clean:
-	rm -f $(OBJ)
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
 	rm -f $(TARGET)

@@ -52,13 +52,13 @@ typedef struct{
     int col;
 } new_cell;
 
-int get_dimensions(char** first_line, char* dimension, char* trailing_char);
+int read_dimensions(char** first_line, char* dimension, char* trailing_char);
 
 parameter set_parameters(FILE* map_file);
 
 symbol set_symbols(char trailing_char, char* first_line);
 
-map init_map(const char* width, const char* length);
+map init_map(char* width, char* length);
 
 int handle_full(int row_index, int col_index, map map);
 

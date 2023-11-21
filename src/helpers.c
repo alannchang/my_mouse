@@ -1,31 +1,39 @@
 #include "../include/my_mouse.h"
 
-int get_dimensions(char** first_line, char* dimension, char* trailing_char) {
+int read_dimensions(char** first_line, char* dimension, char* trailing_char) {
     char* temp = malloc(4);
     int i = 0;
     while (isdigit(**first_line)) {
-        if (i > 2) return 1;
+        if (i > 2) return 1; // number too large
         temp[i] = **first_line;
         (*first_line)++;
         i++;
     }
+    if (i == 0) return 1; // no number found
     *trailing_char = **first_line;
     (*first_line)++;
     temp[i] = '\0';
-    dimension = realloc(dimension, i);
+    // dimension = realloc(dimension, i);
     strncpy(dimension, temp, i);
+    free(temp);
     return 0;
 }
 
 parameter set_parameters(FILE* map_file) {
-    parameter parameter;
-    parameter.width = malloc(4);
-    parameter.length = malloc(4);
-    parameter.first_line = malloc(12);
-    fgets(parameter.first_line, 15, map_file);
-    get_dimensions(&parameter.first_line, parameter.width, &parameter.trailing_char);
-    get_dimensions(&parameter.first_line, parameter.length, &parameter.trailing_char);
-    return parameter;
+    parameter param;
+    param.width = malloc(4);
+    param.length = malloc(4);
+    param.first_line = malloc(12); // MEMORY LEAK
+    fgets(param.first_line, 15, map_file);
+    if ((read_dimensions(&param.first_line, param.width, &param.trailing_char)) != 0 || param.trailing_char != 'x'){
+        write(2, "invalid dimensions", 18);
+        // hmmm
+    };
+    if ((read_dimensions(&param.first_line, param.length, &param.trailing_char)) != 0){
+        write(2, "invalid dimensions", 18);
+        // hmmm
+    };
+    return param;
 }
 
 symbol set_symbols(char trailing_char, char* first_line) {
@@ -38,12 +46,12 @@ symbol set_symbols(char trailing_char, char* first_line) {
     return symbol;
 }
 
-map init_map(const char* width, const char* length) {
+map init_map(char* width, char* length) {
     map map;
     map.total_rows = atoi(width);
     map.total_columns = atoi(length);
     map.arr = (int**)malloc((map.total_rows + 1) * sizeof(int*));
-    for (int i = 0; i < map.total_rows + 1; i++) map.arr[i] = (int*)malloc((map.total_columns + 1) * sizeof(int));
+    for (int i = 0; i < map.total_rows + 1; i++) map.arr[i] = (int*)malloc((map.total_columns + 1) * sizeof(int)); // MEMORY LEAK
     return map;
 }
 
@@ -130,8 +138,8 @@ bool is_in_list(cell** list, int count, new_cell new_cell) {
 
 a_star init_a_star(map map, cell* entry_cell) {
     a_star a_star;
-    a_star.open_list = malloc(map.total_rows * map.total_columns * sizeof(cell*));
-    a_star.closed_list = malloc(map.total_rows * map.total_columns * sizeof(cell*));
+    a_star.open_list = malloc(map.total_rows * map.total_columns * sizeof(cell*)); // MEMORY LEAK
+    a_star.closed_list = malloc(map.total_rows * map.total_columns * sizeof(cell*)); // MEMORY LEAK
     a_star.open_ct = 0;
     a_star.closed_ct = 0;
     a_star.open_list[a_star.open_ct++] = entry_cell;
@@ -166,7 +174,7 @@ void check_lists(cell* current_cell, direction dir, map map, a_star* a_star, cel
         if (is_valid(new_cell, map) && map.arr[new_cell.row][new_cell.col] != 1){
             bool in_closed_list = is_in_list(a_star->closed_list, a_star->closed_ct, new_cell);
             if (!in_closed_list){
-                cell* successor = (cell*)malloc(sizeof(cell));
+                cell* successor = (cell*)malloc(sizeof(cell)); // MEMORY LEAK
                 init_successor(successor, new_cell.row, new_cell.col, current_cell, exit_cell);
                 bool in_open_list = is_in_list(a_star->open_list, a_star->open_ct, new_cell);
                 if (!in_open_list) a_star->open_list[a_star->open_ct++] = successor;
@@ -185,10 +193,16 @@ cell* a_star_algo(map map, cell* entry_cell, cell* exit_cell) {
         for (int i = lowest_f_index; i < a_star.open_ct - 1; i++) a_star.open_list[i] = a_star.open_list[i + 1];
         a_star.open_ct--;
         a_star.closed_list[a_star.closed_ct++] = current_cell;
-        if (reached_exit(current_cell, exit_cell)) return current_cell;
+        if (reached_exit(current_cell, exit_cell)) {
+            free(a_star.closed_list);
+            free(a_star.open_list);
+            return current_cell;
+        }
         direction dir = {{-1, 0, 0, 1}, {0, -1, 1, 0}};
         check_lists(current_cell, dir, map, &a_star, exit_cell);
     }
+    free(a_star.closed_list);
+    free(a_star.open_list);
     return NULL;
 }
 
