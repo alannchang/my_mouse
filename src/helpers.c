@@ -25,11 +25,12 @@ parameter set_parameters(FILE* map_file) {
     param.length = malloc(4);
     param.first_line = malloc(12); // MEMORY LEAK
     fgets(param.first_line, 15, map_file);
-    if ((read_dimensions(&param.first_line, param.width, &param.trailing_char)) != 0 || param.trailing_char != 'x'){
+    param.ptr = param.first_line;
+    if ((read_dimensions(&param.ptr, param.width, &param.trailing_char)) != 0 || param.trailing_char != 'x'){
         write(2, "invalid dimensions", 18);
         // hmmm
     };
-    if ((read_dimensions(&param.first_line, param.length, &param.trailing_char)) != 0){
+    if ((read_dimensions(&param.ptr, param.length, &param.trailing_char)) != 0){
         write(2, "invalid dimensions", 18);
         // hmmm
     };

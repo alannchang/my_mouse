@@ -20,14 +20,15 @@ typedef struct{
 typedef struct{
     int total_rows;
     int total_columns;
-    int** arr;
+    int **arr;
 } map;
 
 typedef struct{
-    char* width;
-    char* length;
+    char *width;
+    char *length;
     char trailing_char;
-    char* first_line;
+    char *first_line;
+    char *ptr;
 } parameter;
 
 typedef struct Node{

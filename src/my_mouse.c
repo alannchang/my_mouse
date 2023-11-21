@@ -12,7 +12,8 @@ int main(int ac, char** av){
     }
 
     parameter param = set_parameters(map_file);
-    symbol symbol = set_symbols(param.trailing_char, param.first_line);
+    symbol symbol = set_symbols(param.trailing_char, param.ptr);
+    free(param.first_line);
     map map = init_map(param.width, param.length);
     free(param.width);
     free(param.length);
