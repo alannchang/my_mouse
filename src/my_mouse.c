@@ -1,10 +1,9 @@
 #include "../include/my_mouse.h"
 
 int main(int ac, char** av){
-    if (ac != 2) {
-        write(2, "invalid number of arguments\n", 27); 
-        return 1;
-    }
+
+    if(check_arg_ct(ac) != 0) return 1;
+    
     FILE* map_file = fopen(av[1], "r");
     if (map_file == NULL){
         write(2, "invalid file", 12);

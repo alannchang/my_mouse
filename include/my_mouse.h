@@ -37,8 +37,8 @@ typedef struct Node{
 } cell;
 
 typedef struct{
-    cell** open_list;
-    cell** closed_list;
+    cell **open_list;
+    cell **closed_list;
     int open_ct;
     int closed_ct;
 } a_star;
@@ -52,6 +52,8 @@ typedef struct{
     int row;
     int col;
 } new_cell;
+
+int check_arg_ct(int ac);
 
 int read_dimensions(char** first_line, char* dimension, char* trailing_char);
 
@@ -89,7 +91,7 @@ void init_entry_cell(cell* entry_cell);
 
 new_cell init_new_cell(cell* current_cell, direction dir, int i);
 
-void init_successor(cell* successor, int new_row, int new_col, cell* current_cell, cell* exit_cell);
+cell* init_successor(int new_row, int new_col, cell* current_cell, cell* exit_cell);
 
 void check_lists(cell* current_cell, direction dir, map map, a_star* a_star, cell* exit_cell);
 

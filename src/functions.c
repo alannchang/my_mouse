@@ -1,5 +1,13 @@
 #include "../include/my_mouse.h"
 
+int check_arg_ct(int ac){
+    if (ac != 2){
+        write(2, "INVALID NUMBER OF ARGUMENTS", 27);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
 int read_dimensions(char** first_line, char* dimension, char* trailing_char) {
     char* temp = malloc(4);
     int i = 0;
@@ -114,69 +122,70 @@ bool is_valid(new_cell new_cell, map map) {
     return (new_cell.row >= 0) && (new_cell.row < map.total_rows) && (new_cell.col >= 0) && (new_cell.col < map.total_columns);
 }
 
-bool reached_exit(cell* current_cell, cell* exit_cell) {
+bool reached_exit(cell *current_cell, cell* exit_cell) {
     return (current_cell->row == exit_cell->row) && (current_cell->col == exit_cell->col);
 }
 
-int get_h(int row, int col, cell* exit_cell) {
+int get_h(int row, int col, cell *exit_cell) {
     int h = abs(row - exit_cell->row) + abs(col - exit_cell->col);
     return h;
 }
 
-cell* find_lowest_f_cell(cell** open_list, int open_ct, int* lowest_f_index) {
+cell* find_lowest_f_cell(cell **open_list, int open_ct, int *lowest_f_index) {
     for (int i = 1; i < open_ct; i++) {
         if (open_list[i]->f < open_list[*lowest_f_index]->f) *lowest_f_index = i;
     }
     return open_list[*lowest_f_index];
 }
 
-bool is_in_list(cell** list, int count, new_cell new_cell) {
+bool is_in_list(cell **list, int count, new_cell new_cell) {
     for (int i = 0; i < count; i++) {
         if (list[i]->row == new_cell.row && list[i]->col == new_cell.col) return true;
     }
     return false;
 }
 
-a_star init_a_star(map map, cell* entry_cell) {
+a_star init_a_star(map map, cell *entry_cell) {
     a_star a_star;
-    a_star.open_list = malloc(map.total_rows * map.total_columns * sizeof(cell*)); // MEMORY LEAK
-    a_star.closed_list = malloc(map.total_rows * map.total_columns * sizeof(cell*)); // MEMORY LEAK
+    a_star.open_list = malloc(map.total_rows * map.total_columns * sizeof(cell *));
+    a_star.closed_list = malloc(map.total_rows * map.total_columns * sizeof(cell *));
     a_star.open_ct = 0;
     a_star.closed_ct = 0;
     a_star.open_list[a_star.open_ct++] = entry_cell;
     return a_star;
 }
 
-void init_entry_cell(cell* entry_cell) {
+void init_entry_cell(cell *entry_cell) {
     entry_cell->f = 0;
     entry_cell->g = 0;
     entry_cell->h = 0;
     entry_cell->parent = NULL;
 }
 
-new_cell init_new(cell* current_cell, direction dir, int i) {
+new_cell init_new(cell *current_cell, direction dir, int i) {
     new_cell new_cell;
     new_cell.row = current_cell->row + dir.row[i];
     new_cell.col = current_cell->col + dir.col[i];
     return new_cell;
 }
 
-void init_successor(cell* successor, int new_row, int new_col, cell* current_cell, cell* exit_cell) {
+cell *init_successor(int new_row, int new_col, cell *current_cell, cell *exit_cell) {
+    cell *successor = (cell *)malloc(sizeof(cell));
     successor->row = new_row;
     successor->col = new_col;
     successor->parent = current_cell;
     successor->g = current_cell->g + 1;
     successor->h = get_h(new_row, new_col, exit_cell);
+    return successor;
 }
 
-void check_lists(cell* current_cell, direction dir, map map, a_star* a_star, cell* exit_cell) {
+void check_lists(cell *current_cell, direction dir, map map, a_star *a_star, cell *exit_cell) {
     for (int i = 0; i < 4; i++){
         new_cell new_cell = init_new(current_cell, dir, i);
         if (is_valid(new_cell, map) && map.arr[new_cell.row][new_cell.col] != 1){
             bool in_closed_list = is_in_list(a_star->closed_list, a_star->closed_ct, new_cell);
             if (!in_closed_list){
-                cell* successor = (cell*)malloc(sizeof(cell)); // MEMORY LEAK
-                init_successor(successor, new_cell.row, new_cell.col, current_cell, exit_cell);
+                cell* successor = init_successor(new_cell.row, new_cell.col, current_cell, exit_cell);
                 bool in_open_list = is_in_list(a_star->open_list, a_star->open_ct, new_cell);
                 if (!in_open_list) a_star->open_list[a_star->open_ct++] = successor;
                 else free(successor);
@@ -185,7 +194,7 @@ void check_lists(cell* current_cell, direction dir, map map, a_star* a_star, cel
     }
 }
 
-cell* a_star_algo(map map, cell* entry_cell, cell* exit_cell) {
+cell* a_star_algo(map map, cell *entry_cell, cell *exit_cell) {
     init_entry_cell(entry_cell);
     a_star a_star = init_a_star(map, entry_cell);
     while (a_star.open_ct > 0){
@@ -203,11 +212,14 @@ cell* a_star_algo(map map, cell* entry_cell, cell* exit_cell) {
         check_lists(current_cell, dir, map, &a_star, exit_cell);
     }
     free(a_star.closed_list);
+    for (int i = 0; i < a_star.closed_ct; i++) {
+        if (a_star.closed_list[i] != NULL) free(a_star.closed_list[i]);
+    }
     free(a_star.open_list);
     return NULL;
 }
 
-cell* reverse_linked_list(cell* param_1) {
+cell *reverse_linked_list(cell *param_1) {
     cell *prev = NULL;
     cell *next = NULL;
     while (param_1 != NULL) {
