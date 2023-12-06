@@ -200,17 +200,19 @@ cell* a_star_algo(map map, cell *entry_cell, cell *exit_cell) {
     while (a_star.open_ct > 0){
         int lowest_f_index = 0;
         cell* current_cell = find_lowest_f_cell(a_star.open_list, a_star.open_ct, &lowest_f_index);
-        for (int i = lowest_f_index; i < a_star.open_ct - 1; i++) a_star.open_list[i] = a_star.open_list[i + 1];
+        for (int i = lowest_f_index; i < a_star.open_ct - 1; i++) {
+            a_star.open_list[i] = a_star.open_list[i + 1];
+        }
         a_star.open_ct--;
         a_star.closed_list[a_star.closed_ct++] = current_cell;
         if (reached_exit(current_cell, exit_cell)) {
-            free(a_star.closed_list);
             free(a_star.open_list);
             return current_cell;
         }
         direction dir = {{-1, 0, 0, 1}, {0, -1, 1, 0}};
         check_lists(current_cell, dir, map, &a_star, exit_cell);
     }
+    // Free the closed_list outside the loop
     free(a_star.closed_list);
     for (int i = 0; i < a_star.closed_ct; i++) {
         if (a_star.closed_list[i] != NULL) free(a_star.closed_list[i]);
