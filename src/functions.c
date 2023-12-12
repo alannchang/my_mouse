@@ -31,8 +31,8 @@ parameter set_parameters(FILE* map_file) {
     parameter param;
     param.width = malloc(4);
     param.length = malloc(4);
-    param.first_line = malloc(12); // MEMORY LEAK
-    fgets(param.first_line, 15, map_file);
+    param.first_line = malloc(13); // MEMORY LEAK?
+    fgets(param.first_line, 13, map_file);
     param.ptr = param.first_line;
     if ((read_dimensions(&param.ptr, param.width, &param.trailing_char)) != 0 || param.trailing_char != 'x'){
         write(2, "invalid dimensions", 18);
