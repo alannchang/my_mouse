@@ -212,11 +212,6 @@ cell* a_star_algo(map map, cell *entry_cell, cell *exit_cell) {
         direction dir = {{-1, 0, 0, 1}, {0, -1, 1, 0}};
         check_lists(current_cell, dir, map, &a_star, exit_cell);
     }
-    // Free the closed_list outside the loop
-    free(a_star.closed_list);
-    for (int i = 0; i < a_star.closed_ct; i++) {
-        if (a_star.closed_list[i] != NULL) free(a_star.closed_list[i]);
-    }
     free(a_star.open_list);
     return NULL;
 }
