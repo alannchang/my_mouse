@@ -188,7 +188,9 @@ void check_lists(cell *current_cell, direction dir, map map, a_star *a_star, cel
                 cell* successor = init_successor(new_cell.row, new_cell.col, current_cell, exit_cell);
                 bool in_open_list = is_in_list(a_star->open_list, a_star->open_ct, new_cell);
                 if (!in_open_list) a_star->open_list[a_star->open_ct++] = successor;
-                else free(successor);
+                else {
+                    free(successor);
+                }
             }
         }
     }
@@ -206,7 +208,6 @@ cell* a_star_algo(map map, cell *entry_cell, cell *exit_cell) {
         a_star.open_ct--;
         a_star.closed_list[a_star.closed_ct++] = current_cell;
         if (reached_exit(current_cell, exit_cell)) {
-            free(a_star.open_list);
             return current_cell;
         }
         direction dir = {{-1, 0, 0, 1}, {0, -1, 1, 0}};
