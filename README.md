@@ -2,7 +2,7 @@
 ***
 
 ## Task
-This project is about finding the shortest path given a file that contains a maze. 
+This project is about finding the shortest path given a file that contains a maze containing an entrance and an exit. 
 
 ## Description
 This program finds the shortest path by reading the given map file, storing the maze itself and its parameters, and then implementing the A* algorithm to find the shortest path.
@@ -17,6 +17,18 @@ For example, for a 10 character by 10 character map with five characters followi
 
 ```
 ./my_mouse 01.map
+10x10* o12
+***1******
+*  o    **
+* *o **  *
+* oo     *
+**o** ** *
+* oo    **
+*  o   ***
+** o     *
+*  o     *
+***2******
+10 STEPS!
 ```
 
 ### The Core Team
