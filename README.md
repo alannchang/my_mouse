@@ -13,8 +13,8 @@ This program finds the shortest path by reading the given map file, storing the 
 The program will print out the map and the shortest path or "MAP ERROR" if no paths exist.
 
 ## Rules/Constraints
-Movements can only be horizontally or vertically, not diagonally.
-The exit must be located on the outside walls.
+Movements can only be horizontal or vertical, not diagonal.
+The exit must be located on one of the outside walls.
 In case multiple solutions exist, the program will choose the shortest one. 
 If there is equality, it will prioritize the solution whose exit is the most up and then the leftmost.
 If there are two solutions for the same output, the program will choose the solutions in the order: up > left > right > down.
@@ -45,7 +45,7 @@ The first line contains information to read the map:
 The maze itself is composed of "empty" characters, "full" characters, "entering the labyrinth" characters, and "exiting the labyrinth" characters.
 
 ## Example
-For a 10 character by 10 character map with five characters following that to represent the "full", "empty", "path", "entrance", and "exit": 10x10* o12
+For a 10 character by 10 character map with five characters following that to represent the "full", "empty", "path", "entrance", and "exit":
 
 ```
 cat -e 01.map
@@ -75,8 +75,4 @@ cat -e 01.map
 10 STEPS!
 ```
 
-### The Core Team
-Alan Chang
-
 <span><i>Made at <a href='https://qwasar.io'>Qwasar SV -- Software Engineering School</a></i></span>
-<span><img alt='Qwasar SV -- Software Engineering School's Logo' src='https://storage.googleapis.com/qwasar-public/qwasar-logo_50x50.png' width='20px' /></span>
